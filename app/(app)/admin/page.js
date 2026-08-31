@@ -17,6 +17,7 @@ import {
   KeyRound,
   ExternalLink,
   Coins,
+  ClipboardList,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shell/page-header';
 import { KpiTile } from '@/components/radar/kpi-tile';
@@ -38,7 +39,8 @@ export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Admin',
-  description: 'Ingestion runs, per-source health, AI usage and cost, all read from the data store.',
+  description:
+    'Ingestion runs, per-source health, AI usage and cost, all read from the data store.',
 };
 
 const RUN_STATUS = {
@@ -102,13 +104,55 @@ function ConfigRow({ label, active, activeText, inactiveText, hint }) {
 
 export default async function AdminPage() {
   await requireAdmin();
+
   const stats = await getAdminStats({ days: 7 });
+
   const dbAdmins =
     typeof repo?.getAdminEmails === 'function'
       ? await repo.getAdminEmails().catch(() => [])
       : [];
 
-  const { config, store, feed, engagement, usage, runs, sourceHealth } = stats;
+  // Admin-only Idea Validator log.
+  // The repository method is server-side and this page is protected
+  // by requireAdmin(), so validator submissions are never exposed
+  // through a public route.
+  let validationLog = [];
+
+  try {
+    const rows = await repo.listValidationsAdmin(100);
+
+    const userIds = [
+      ...new Set(rows.map((row) => row.userId).filter(Boolean)),
+    ];
+
+    const users = await repo.listUsersByIds(userIds);
+
+    const usersById = new Map(
+      users.map((user) => [user.id, user])
+    );
+
+    validationLog = rows.map((row) => ({
+      ...row,
+      user: row.userId
+        ? usersById.get(row.userId) || null
+        : null,
+    }));
+  } catch (error) {
+    console.error(
+      '[admin] idea validator log failed:',
+      error.message
+    );
+  }
+
+  const {
+    config,
+    store,
+    feed,
+    engagement,
+    usage,
+    runs,
+    sourceHealth,
+  } = stats;
 
   return (
     <>
@@ -119,7 +163,11 @@ export default async function AdminPage() {
         description="Everything on this page is read from the database. If a number is zero it is because that has genuinely not happened yet, not because the panel is decorative."
         actions={
           <Button asChild variant="secondary" size="sm">
-            <Link href="/api/health" target="_blank" rel="noreferrer">
+            <Link
+              href="/api/health"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Activity />
               Raw health JSON
               <ExternalLink />
@@ -149,6 +197,7 @@ export default async function AdminPage() {
           accent="primary"
           hint={`${feed.ingestedCount} ingested, ${feed.seedCount} seed`}
         />
+
         <KpiTile
           label="AI calls (7d)"
           value={usage.totalCalls}
@@ -156,13 +205,21 @@ export default async function AdminPage() {
           accent="violet"
           hint={`${usage.liveSharePct}% served by the model`}
         />
+
         <KpiTile
           label="Spend today"
           value={formatUsd(usage.costToday)}
           icon={Coins}
-          accent={usage.budgetUsedPct >= 100 ? 'amber' : 'emerald'}
-          hint={`${usage.budgetUsedPct}% of the ${formatUsd(usage.budgetUsd)} cap`}
+          accent={
+            usage.budgetUsedPct >= 100
+              ? 'amber'
+              : 'emerald'
+          }
+          hint={`${usage.budgetUsedPct}% of the ${formatUsd(
+            usage.budgetUsd
+          )} cap`}
         />
+
         <KpiTile
           label="Users"
           value={engagement.users}
@@ -170,6 +227,7 @@ export default async function AdminPage() {
           accent="indigo"
           hint={`${usage.uniqueUsers} active in 7 days`}
         />
+
         <KpiTile
           label="Saves"
           value={engagement.savedTotal}
@@ -177,6 +235,7 @@ export default async function AdminPage() {
           accent="emerald"
           hint="Across all watchlists"
         />
+
         <KpiTile
           label="Validations"
           value={formatNumber(engagement.validationsTotal)}
@@ -186,30 +245,196 @@ export default async function AdminPage() {
         />
       </div>
 
+      {/* ============================================================
+          IDEA VALIDATOR AUDIT LOG
+          ============================================================ */}
+      <Card tone="glass" className="mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardEyebrow icon={ClipboardList}>
+              Idea Validator log
+            </CardEyebrow>
+
+            <p className="mt-1.5 max-w-2xl text-[11px] leading-relaxed text-on-surface-variant">
+              Admin-only audit trail of the latest 100 scored ideas,
+              including the submitted idea, user, overall validation
+              score, six dimension scores and timestamp.
+            </p>
+          </div>
+
+          <Badge variant="outline">
+            {validationLog.length} recent
+          </Badge>
+        </div>
+
+        {validationLog.length === 0 ? (
+          <p className="mt-4 text-[11px] text-on-surface-variant">
+            No Idea Validator submissions have been recorded yet.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-xl border border-border/60">
+            <table className="w-full min-w-[980px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-border/60 bg-surface-low/50">
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Submitted
+                  </th>
+
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    User
+                  </th>
+
+                  <th className="w-[34%] px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Idea
+                  </th>
+
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Score
+                  </th>
+
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Dimensions / 100
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-border/60">
+                {validationLog.map((row) => {
+                  const scores = row.result?.scores || {};
+
+                  const dimensions = [
+                    ['D', scores.demand],
+                    ['C', scores.competition],
+                    ['F', scores.feasibility],
+                    ['T', scores.timing],
+                    ['I', scores.indiaRelevance],
+                    ['R', scores.regulation],
+                  ];
+
+                  return (
+                    <tr
+                      key={row.id}
+                      className="align-top"
+                    >
+                      <td className="whitespace-nowrap px-3 py-3 text-[10px] text-on-surface-variant">
+                        {row.createdAt
+                          ? new Date(
+                              row.createdAt
+                            ).toLocaleString()
+                          : '—'}
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <div className="text-[10px] font-bold text-on-surface">
+                          {row.user?.name ||
+                            'Unknown user'}
+                        </div>
+
+                        <div className="mt-0.5 text-[9px] text-on-surface-variant">
+                          {row.user?.email ||
+                            (row.userId
+                              ? truncate(
+                                  row.userId,
+                                  18
+                                )
+                              : 'Anonymous')}
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <p className="max-w-xl text-[11px] leading-relaxed text-on-surface">
+                          {truncate(
+                            row.ideaText || '—',
+                            260
+                          )}
+                        </p>
+
+                        {row.result?.verdict ? (
+                          <p className="mt-1 text-[9px] leading-relaxed text-on-surface-variant">
+                            {truncate(
+                              row.result.verdict,
+                              180
+                            )}
+                          </p>
+                        ) : null}
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <span className="mono text-sm font-black text-primary">
+                          {row.validationScore ?? '—'}
+                        </span>
+
+                        <span className="ml-1 text-[9px] text-on-surface-variant">
+                          /100
+                        </span>
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {dimensions.map(
+                            ([label, value]) => (
+                              <span
+                                key={label}
+                                className="rounded-md border border-border/60 bg-surface-low px-1.5 py-1 font-mono text-[9px] text-on-surface-variant"
+                                title={label}
+                              >
+                                {label}: {value ?? '—'}
+                              </span>
+                            )
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <CallsChart daily={usage.daily} />
-        <CostChart daily={usage.daily} budgetUsd={usage.budgetUsd} />
+
+        <CostChart
+          daily={usage.daily}
+          budgetUsd={usage.budgetUsd}
+        />
       </div>
 
-      {/* Admin Access Control */}
+      {/* ============================================================
+          ADMIN ACCESS CONTROL
+          ============================================================ */}
       <div className="mb-6">
-        <AdminManager initialEnvAdmins={adminEmails} initialDbAdmins={dbAdmins} />
+        <AdminManager
+          initialEnvAdmins={adminEmails}
+          initialDbAdmins={dbAdmins}
+        />
       </div>
 
-      {/* Ingestion */}
+      {/* ============================================================
+          INGESTION
+          ============================================================ */}
       <Card tone="glass" className="mb-6 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <CardEyebrow icon={Radio}>Ingestion</CardEyebrow>
+            <CardEyebrow icon={Radio}>
+              Ingestion
+            </CardEyebrow>
+
             <p className="mt-1.5 max-w-xl text-[11px] leading-relaxed text-on-surface-variant">
-              A run queries every source, clusters what it finds, and asks the model to rewrite one
-              brief per cluster. Failed sources are skipped and the previous brief is retained, so the
-              feed can never shrink because an upstream was down.
+              A run queries every source, clusters what it finds,
+              and asks the model to rewrite one brief per cluster.
+              Failed sources are skipped and the previous brief is
+              retained, so the feed can never shrink because an
+              upstream was down.
+
               {config.ingestion.cronSecret
                 ? ' A daily cron is registered and authenticated.'
                 : ' Set CRON_SECRET to enable the scheduled daily run in production.'}
             </p>
           </div>
+
           <IngestTrigger />
         </div>
 
@@ -218,35 +443,122 @@ export default async function AdminPage() {
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                6-Category Multi-Source Ingestion Pipeline (10 Connectors)
+                6-Category Multi-Source Ingestion
+                Pipeline (10 Connectors)
               </p>
+
               <p className="mt-0.5 text-[11px] text-on-surface-variant">
-                Every ingestion cycle queries all 10 connectors in parallel across technical, regulatory, community, and market launch dimensions.
+                Every ingestion cycle queries all 10
+                connectors in parallel across technical,
+                regulatory, community, and market launch
+                dimensions.
               </p>
             </div>
+
             {sourceHealth.asOf ? (
               <p className="text-[10px] text-on-surface-variant/80">
-                last run {formatRelativeTime(sourceHealth.asOf)}
+                last run{' '}
+                {formatRelativeTime(
+                  sourceHealth.asOf
+                )}
               </p>
             ) : null}
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { id: 'stackoverflow', name: 'Stack Overflow', cat: 'Cat 1: Tech & Dev', tier: 'Tier A (P0)', desc: 'UPI, KYC/OCR compliance, Indian SaaS APIs', icon: Database },
-              { id: 'github', name: 'GitHub', cat: 'Cat 1: Tech & Dev', tier: 'Tier A (P1)', desc: 'Developer friction repos & tooling gaps', icon: Github },
-              { id: 'hackernews', name: 'Hacker News', cat: 'Cat 1: Tech & Dev', tier: 'Tier B (P1)', desc: 'Ask HN & Show HN pain discussions', icon: MessageSquare },
-              { id: 'devto', name: 'Dev.to & IndieHackers', cat: 'Cat 1: Tech & Dev', tier: 'Tier B (P1)', desc: 'Builder struggle & workaround articles', icon: Sparkles },
-              { id: 'reddit', name: 'Reddit Communities', cat: 'Cat 2: Communities', tier: 'Tier A (P0)', desc: 'r/developersIndia, r/indiastartups, r/solopreneur', icon: MessageSquare },
-              { id: 'reviews', name: 'Product Reviews & Switching', cat: 'Cat 3: Reviews', tier: 'Tier B (P1)', desc: 'AlternativeTo, SaaSHub, Trustpilot, G2', icon: AlertTriangle },
-              { id: 'regulatory', name: 'Regulatory Portals', cat: 'Cat 4: Regulatory', tier: 'Tier A (P0)', desc: 'RBI, SEBI, IRDAI, PIB Finance & GST Council', icon: ShieldCheck },
-              { id: 'workforce', name: 'Workforce & Human Workarounds', cat: 'Cat 5: Workforce', tier: 'Tier B (P1)', desc: 'Upwork & job spikes for manual Excel/KYC/GST tasks', icon: Users },
-              { id: 'launches', name: 'Launch & Market Intel', cat: 'Cat 6: Launches', tier: 'Tier B (P1)', desc: 'Product Hunt, YourStory & Entrackr feeds', icon: Activity },
-              { id: 'rss', name: 'Indian Tech Feeds', cat: 'Baseline RSS', tier: 'Tier B', desc: 'Financial news and policy RSS channels', icon: Rss },
+              {
+                id: 'stackoverflow',
+                name: 'Stack Overflow',
+                cat: 'Cat 1: Tech & Dev',
+                tier: 'Tier A (P0)',
+                desc: 'UPI, KYC/OCR compliance, Indian SaaS APIs',
+                icon: Database,
+              },
+              {
+                id: 'github',
+                name: 'GitHub',
+                cat: 'Cat 1: Tech & Dev',
+                tier: 'Tier A (P1)',
+                desc: 'Developer friction repos & tooling gaps',
+                icon: Github,
+              },
+              {
+                id: 'hackernews',
+                name: 'Hacker News',
+                cat: 'Cat 1: Tech & Dev',
+                tier: 'Tier B (P1)',
+                desc: 'Ask HN & Show HN pain discussions',
+                icon: MessageSquare,
+              },
+              {
+                id: 'devto',
+                name: 'Dev.to & IndieHackers',
+                cat: 'Cat 1: Tech & Dev',
+                tier: 'Tier B (P1)',
+                desc: 'Builder struggle & workaround articles',
+                icon: Sparkles,
+              },
+              {
+                id: 'reddit',
+                name: 'Reddit Communities',
+                cat: 'Cat 2: Communities',
+                tier: 'Tier A (P0)',
+                desc: 'r/developersIndia, r/indiastartups, r/solopreneur',
+                icon: MessageSquare,
+              },
+              {
+                id: 'reviews',
+                name: 'Product Reviews & Switching',
+                cat: 'Cat 3: Reviews',
+                tier: 'Tier B (P1)',
+                desc: 'AlternativeTo, SaaSHub, Trustpilot, G2',
+                icon: AlertTriangle,
+              },
+              {
+                id: 'regulatory',
+                name: 'Regulatory Portals',
+                cat: 'Cat 4: Regulatory',
+                tier: 'Tier A (P0)',
+                desc: 'RBI, SEBI, IRDAI, PIB Finance & GST Council',
+                icon: ShieldCheck,
+              },
+              {
+                id: 'workforce',
+                name: 'Workforce & Human Workarounds',
+                cat: 'Cat 5: Workforce',
+                tier: 'Tier B (P1)',
+                desc: 'Upwork & job spikes for manual Excel/KYC/GST tasks',
+                icon: Users,
+              },
+              {
+                id: 'launches',
+                name: 'Launch & Market Intel',
+                cat: 'Cat 6: Launches',
+                tier: 'Tier B (P1)',
+                desc: 'Product Hunt, YourStory & Entrackr feeds',
+                icon: Activity,
+              },
+              {
+                id: 'rss',
+                name: 'Indian Tech Feeds',
+                cat: 'Baseline RSS',
+                tier: 'Tier B',
+                desc: 'Financial news and policy RSS channels',
+                icon: Rss,
+              },
             ].map((cfg) => {
-              const live = sourceHealth.sources?.find((s) => s.name === cfg.id);
+              const live = sourceHealth.sources?.find(
+                (s) => s.name === cfg.id
+              );
+
               const Icon = cfg.icon;
-              const status = live?.status || (live?.items > 0 ? 'ok' : 'ready');
+
+              const status =
+                live?.status ||
+                (live?.items > 0
+                  ? 'ok'
+                  : 'ready');
 
               return (
                 <div
@@ -255,18 +567,29 @@ export default async function AdminPage() {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface border border-border">
-                        <Icon className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border bg-surface">
+                        <Icon
+                          className="h-3.5 w-3.5 text-primary"
+                          aria-hidden="true"
+                        />
                       </div>
+
                       <div className="min-w-0 flex-1">
-                        <span className="text-xs font-bold text-on-surface truncate block">
+                        <span className="block truncate text-xs font-bold text-on-surface">
                           {cfg.name}
                         </span>
-                        <span className="text-[10px] text-primary font-medium">{cfg.cat}</span>
+
+                        <span className="text-[10px] font-medium text-primary">
+                          {cfg.cat}
+                        </span>
                       </div>
+
                       <Badge
-                        variant={SOURCE_STATUS[status] || 'default'}
-                        className="text-[10px] uppercase font-bold"
+                        variant={
+                          SOURCE_STATUS[status] ||
+                          'default'
+                        }
+                        className="text-[10px] font-bold uppercase"
                       >
                         {status}
                       </Badge>
@@ -277,9 +600,14 @@ export default async function AdminPage() {
                     </p>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2 text-[10px] text-on-surface-variant font-mono">
+                  <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2 font-mono text-[10px] text-on-surface-variant">
                     <span>{cfg.tier}</span>
-                    <span>{live ? `${live.items} items \u00b7 ${live.durationMs}ms` : 'Automated connector'}</span>
+
+                    <span>
+                      {live
+                        ? `${live.items} items · ${live.durationMs}ms`
+                        : 'Automated connector'}
+                    </span>
                   </div>
                 </div>
               );
@@ -295,30 +623,51 @@ export default async function AdminPage() {
 
           {runs.length === 0 ? (
             <p className="mt-3 text-[11px] leading-relaxed text-on-surface-variant">
-              No ingestion run has been recorded. The feed is serving bundled seed briefs until the
+              No ingestion run has been recorded. The
+              feed is serving bundled seed briefs until the
               first run completes.
             </p>
           ) : (
             <ul className="mt-2 divide-y divide-border/60">
               {runs.map((run) => {
-                const preset = RUN_STATUS[run.status] || RUN_STATUS.partial;
+                const preset =
+                  RUN_STATUS[run.status] ||
+                  RUN_STATUS.partial;
+
                 return (
-                  <li key={run.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
+                  <li
+                    key={run.id}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5"
+                  >
                     <Badge variant={preset.variant}>
                       <preset.icon />
                       {run.status}
                     </Badge>
+
                     <span className="mono text-[10px] text-on-surface-variant">
-                      {formatRelativeTime(run.startedAt)}
+                      {formatRelativeTime(
+                        run.startedAt
+                      )}
                     </span>
+
                     <span className="text-[10px] text-on-surface-variant">
-                      <span className="mono font-bold">{run.signalsCount}</span> signals
-                      {' \u00b7 '}
-                      <span className="mono font-bold">{run.opportunitiesCount}</span> briefs
+                      <span className="mono font-bold">
+                        {run.signalsCount}
+                      </span>{' '}
+                      signals
+                      {' · '}
+                      <span className="mono font-bold">
+                        {run.opportunitiesCount}
+                      </span>{' '}
+                      briefs
                     </span>
+
                     {run.error ? (
                       <span className="min-w-0 flex-1 text-[10px] text-amber-signal">
-                        {truncate(run.error, 120)}
+                        {truncate(
+                          run.error,
+                          120
+                        )}
                       </span>
                     ) : null}
                   </li>
@@ -332,7 +681,9 @@ export default async function AdminPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Per-feature usage */}
         <Card tone="glass" className="p-5">
-          <CardEyebrow icon={Sparkles}>AI usage by feature (7 days)</CardEyebrow>
+          <CardEyebrow icon={Sparkles}>
+            AI usage by feature (7 days)
+          </CardEyebrow>
 
           {usage.features.length === 0 ? (
             <p className="mt-3 text-[11px] leading-relaxed text-on-surface-variant">
@@ -343,16 +694,34 @@ export default async function AdminPage() {
               {usage.features.map((feature) => (
                 <li key={feature.feature}>
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="text-[11px] font-bold text-on-surface">{feature.label}</span>
+                    <span className="text-[11px] font-bold text-on-surface">
+                      {feature.label}
+                    </span>
+
                     <span className="mono text-[10px] text-on-surface-variant">
-                      {`${feature.calls} calls \u00b7 ${feature.live} live \u00b7 ${
+                      {`${feature.calls} calls · ${
+                        feature.live
+                      } live · ${
                         feature.fallback
-                      } fallback${feature.cost > 0 ? ` \u00b7 ${formatUsd(feature.cost)}` : ''}`}
+                      } fallback${
+                        feature.cost > 0
+                          ? ` · ${formatUsd(
+                              feature.cost
+                            )}`
+                          : ''
+                      }`}
                     </span>
                   </div>
+
                   <div className="mt-1.5">
                     <Meter
-                      value={feature.calls ? (feature.live / feature.calls) * 100 : 0}
+                      value={
+                        feature.calls
+                          ? (feature.live /
+                              feature.calls) *
+                            100
+                          : 0
+                      }
                       color="#10b981"
                       showValue={false}
                     />
@@ -364,15 +733,27 @@ export default async function AdminPage() {
 
           <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-border/60 pt-4">
             {[
-              ['Tokens', formatNumber(usage.tokens)],
-              ['Avg latency', `${usage.avgLatencyMs}ms`],
-              ['Est. spend', formatUsd(usage.cost)],
+              [
+                'Tokens',
+                formatNumber(usage.tokens),
+              ],
+              [
+                'Avg latency',
+                `${usage.avgLatencyMs}ms`,
+              ],
+              [
+                'Est. spend',
+                formatUsd(usage.cost),
+              ],
             ].map(([label, value]) => (
               <div key={label}>
                 <dt className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
                   {label}
                 </dt>
-                <dd className="mono mt-0.5 text-sm font-bold text-on-surface">{value}</dd>
+
+                <dd className="mono mt-0.5 text-sm font-bold text-on-surface">
+                  {value}
+                </dd>
               </div>
             ))}
           </dl>
@@ -380,24 +761,40 @@ export default async function AdminPage() {
 
         {/* Configuration */}
         <Card tone="glass" className="p-5">
-          <CardEyebrow icon={KeyRound}>Configuration</CardEyebrow>
+          <CardEyebrow icon={KeyRound}>
+            Configuration
+          </CardEyebrow>
+
           <p className="mt-1.5 text-[10px] leading-relaxed text-on-surface-variant/85">
-            Which tier each subsystem is running in right now. Amber is not an error: it means a
+            Which tier each subsystem is running in right
+            now. Amber is not an error: it means a
             documented fallback is active.
           </p>
 
           <ul className="mt-3 divide-y divide-border/60">
             <ConfigRow
               label="Data store"
-              active={store.driver === 'supabase'}
+              active={
+                store.driver === 'supabase'
+              }
               activeText="Supabase Postgres"
-              inactiveText={store.driver === 'memory' ? 'in-memory, not persistent' : 'local file store'}
+              inactiveText={
+                store.driver === 'memory'
+                  ? 'in-memory, not persistent'
+                  : 'local file store'
+              }
               hint={
                 store.driver === 'supabase'
-                  ? `Reachable, ${store.rows ?? 0} briefs, ${store.latencyMs ?? 0}ms`
-                  : store.location || 'Set the Supabase env vars for durable storage'
+                  ? `Reachable, ${
+                      store.rows ?? 0
+                    } briefs, ${
+                      store.latencyMs ?? 0
+                    }ms`
+                  : store.location ||
+                    'Set the Supabase env vars for durable storage'
               }
             />
+
             <ConfigRow
               label="AI model"
               active={config.ai.gemini}
@@ -405,10 +802,13 @@ export default async function AdminPage() {
               inactiveText="not configured, heuristics only"
               hint={
                 config.ai.gemini
-                  ? `Daily cap ${formatUsd(usage.budgetUsd)}; per-feature limits are enforced per user`
+                  ? `Daily cap ${formatUsd(
+                      usage.budgetUsd
+                    )}; per-feature limits are enforced per user`
                   : 'Set GEMINI_API_KEY to enable live analysis and brief enrichment'
               }
             />
+
             <ConfigRow
               label="Authentication"
               active={config.auth.google}
@@ -416,41 +816,62 @@ export default async function AdminPage() {
               inactiveText="demo login only"
               hint={
                 config.auth.adminEmails > 0
-                  ? `${config.auth.adminEmails} admin email${config.auth.adminEmails === 1 ? '' : 's'} configured`
+                  ? `${
+                      config.auth.adminEmails
+                    } admin email${
+                      config.auth.adminEmails === 1
+                        ? ''
+                        : 's'
+                    } configured`
                   : 'ADMIN_EMAILS is empty, so any signed-in user can reach this page'
               }
             />
+
             <ConfigRow
               label="Reddit"
-              active={config.sources.redditAuth}
+              active={
+                config.sources.redditAuth
+              }
               activeText="OAuth credentials"
               inactiveText="public endpoint"
               hint="Reddit blocks unauthenticated requests from most hosting IPs, so a deployed instance needs credentials"
             />
+
             <ConfigRow
               label="GitHub"
-              active={config.sources.githubToken}
+              active={
+                config.sources.githubToken
+              }
               activeText="token"
               inactiveText="anonymous"
               hint="Anonymous search is capped at roughly 10 requests per minute"
             />
+
             <ConfigRow
               label="Regulator feeds"
-              active={config.sources.rssFeeds > 0}
+              active={
+                config.sources.rssFeeds > 0
+              }
               activeText={`${config.sources.rssFeeds} feeds`}
               inactiveText="none configured"
               hint="RBI and SEBI RSS need no credentials"
             />
+
             <ConfigRow
               label="Scheduled ingestion"
-              active={config.ingestion.cronSecret}
+              active={
+                config.ingestion.cronSecret
+              }
               activeText="cron secret set"
               inactiveText="manual only"
               hint="vercel.json registers a daily 02:00 UTC run"
             />
+
             <ConfigRow
               label="Session secret"
-              active={config.auth.secretConfigured}
+              active={
+                config.auth.secretConfigured
+              }
               activeText="configured"
               inactiveText="development fallback"
               hint="NEXTAUTH_SECRET must be set before any real deployment"
@@ -459,34 +880,49 @@ export default async function AdminPage() {
         </Card>
       </div>
 
-      {/* Raw signals */}
+      {/* ============================================================
+          RAW SIGNALS
+          ============================================================ */}
       <Card tone="glass" className="mt-4 p-5">
-        <CardEyebrow icon={Database}>Latest raw signals</CardEyebrow>
+        <CardEyebrow icon={Database}>
+          Latest raw signals
+        </CardEyebrow>
+
         <p className="mt-1.5 text-[10px] leading-relaxed text-on-surface-variant/85">
-          The unprocessed evidence behind the briefs, exactly as the connectors returned it.
+          The unprocessed evidence behind the briefs,
+          exactly as the connectors returned it.
         </p>
 
         {stats.recentSignals.length === 0 ? (
           <p className="mt-3 text-[11px] leading-relaxed text-on-surface-variant">
-            No raw signals stored yet. They are written on every ingestion run.
+            No raw signals stored yet. They are written on
+            every ingestion run.
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-border/60">
             {stats.recentSignals.map((signal) => (
-              <li key={signal.id} className="py-2.5">
+              <li
+                key={signal.id}
+                className="py-2.5"
+              >
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">{signal.source}</Badge>
+                  <Badge variant="outline">
+                    {signal.source}
+                  </Badge>
+
                   {signal.clusterId ? (
                     <span className="mono text-[9px] text-on-surface-variant/70">
                       {signal.clusterId}
                     </span>
                   ) : null}
+
                   {signal.publishedAt ? (
                     <span className="mono ml-auto text-[9px] text-on-surface-variant/70">
                       {signal.publishedAt}
                     </span>
                   ) : null}
                 </div>
+
                 <p className="mt-1 text-[11px] leading-relaxed text-on-surface-variant">
                   {signal.url ? (
                     <a
@@ -495,10 +931,16 @@ export default async function AdminPage() {
                       rel="noreferrer"
                       className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      {truncate(signal.text, 220)}
+                      {truncate(
+                        signal.text,
+                        220
+                      )}
                     </a>
                   ) : (
-                    truncate(signal.text, 220)
+                    truncate(
+                      signal.text,
+                      220
+                    )
                   )}
                 </p>
               </li>
