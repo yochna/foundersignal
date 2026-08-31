@@ -16,7 +16,7 @@ export function ScoreRail({ opportunity = {}, scores, overallScore, className })
 
   return (
     <Card tone="glass" className={className}>
-      <div className="p-5">
+      <div className="p-5 sm:p-7">
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardEyebrow>Signal score</CardEyebrow>
