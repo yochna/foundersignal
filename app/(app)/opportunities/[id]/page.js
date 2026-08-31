@@ -473,7 +473,7 @@ export default async function OpportunityDetailPage({ params }) {
               {unitEcon.targetPricingTiers?.length ? (
                 <div className="space-y-3">
                   <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Recommended Commercial Pricing Tiers</p>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     {unitEcon.targetPricingTiers.map((tier, idx) => (
                       <div key={idx} className="rounded-xl border border-border bg-surface-low/50 p-4 flex flex-col justify-between">
                         <div>
