@@ -61,10 +61,10 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
                 tick={{ fontSize: 9, fill: 'rgb(var(--on-surface-variant))' }}
               />
               <PolarRadiusAxis
-                angle={90}
+                angle={64}
                 domain={[0, 10]}
-                tickCount={6}
-                tick={{ fontSize: 8, fill: 'rgb(var(--on-surface-variant))' }}
+                ticks={[0, 5, 10]}
+                tick={{ fontSize: 8, fill: 'rgb(var(--on-surface-variant) / 0.6)' }}
                 axisLine={false}
               />
               <Radar

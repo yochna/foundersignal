@@ -241,8 +241,8 @@ export default async function OpportunityDetailPage({ params }) {
         ) : null}
 
         {opportunity.whyInteresting ? (
-          <div className="mt-5 flex max-w-4xl items-center gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4.5">
-            <Lightbulb className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+          <div className="mt-5 flex max-w-4xl items-start gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4.5">
+            <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
             <p className="text-xs sm:text-sm leading-relaxed text-on-surface-variant">
               <span className="font-bold text-on-surface">Why this surfaced now: </span>
               {opportunity.whyInteresting}
@@ -251,8 +251,8 @@ export default async function OpportunityDetailPage({ params }) {
         ) : null}
 
         {opportunity.monetizationHypothesis ? (
-          <div className="mt-3 flex max-w-4xl items-center gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4.5">
-            <Coins className="h-5 w-5 shrink-0 text-emerald-500" aria-hidden="true" />
+          <div className="mt-3 flex max-w-4xl items-start gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4.5">
+            <Coins className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" aria-hidden="true" />
             <p className="text-xs sm:text-sm leading-relaxed text-on-surface-variant">
               <span className="font-bold text-on-surface">Monetization hypothesis: </span>
               {opportunity.monetizationHypothesis}
@@ -486,9 +486,9 @@ export default async function OpportunityDetailPage({ params }) {
 
                       <div className="mb-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Key Deliverables</p>
-                        <ul className="grid gap-1 sm:grid-cols-2 text-xs text-on-surface-variant">
+                        <ul className="columns-1 sm:columns-2 gap-x-6 text-xs text-on-surface-variant">
                           {phase.deliverables?.map((d, dIdx) => (
-                            <li key={dIdx} className="flex items-start gap-1.5">
+                            <li key={dIdx} className="mb-1.5 flex items-start gap-1.5 break-inside-avoid">
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
                               <span>{d}</span>
                             </li>
