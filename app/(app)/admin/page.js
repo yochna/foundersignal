@@ -29,7 +29,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Meter } from '@/components/ui/progress';
 import { AdminManager } from '@/components/admin/admin-manager';
-import { VercelAnalyticsPanel } from '@/components/admin/vercel-analytics-panel';
 import { ErrorPanel } from '@/components/feedback/error-panel';
 import { requireAdmin } from '@/lib/auth';
 import { getAdminStats } from '@/lib/admin';
@@ -262,8 +261,7 @@ export default async function AdminPage() {
         )}
       </Card>
 
-      <VercelAnalyticsPanel />
-
+      
       {/* Idea Validator audit log */}
       <Card tone="glass" className="mb-6 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
