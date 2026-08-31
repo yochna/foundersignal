@@ -1,9 +1,8 @@
-import { cookies } from 'next/headers';
+﻿import { cookies } from 'next/headers';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { DEFAULT_THEME, THEME_COOKIE, normalizeTheme, themeBootstrapScript } from '@/lib/themes';
 import { appUrl } from '@/lib/config';
-import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   metadataBase: new URL(appUrl),
@@ -52,17 +51,15 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
-  // Reading the theme server-side means the correct tokens are present in the
-  // very first HTML, so there is no flash of the default theme on load.
   const theme = normalizeTheme(cookies().get(THEME_COOKIE)?.value || DEFAULT_THEME);
 
   return (
     <html lang="en" data-theme={theme} suppressHydrationWarning>
       <head>
-        {/* Reconciles the cookie with localStorage before first paint. */}
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
       <body>
+        
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-xs focus:font-bold focus:text-on-primary"
@@ -70,7 +67,6 @@ export default function RootLayout({ children }) {
           Skip to content
         </a>
         <Providers initialTheme={theme}>{children}</Providers>
-        <Analytics beforeSend={(event) => (event.url.includes('/admin') ? null : event)} />
       </body>
     </html>
   );
