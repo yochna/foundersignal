@@ -52,20 +52,21 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
           <CardEyebrow>Score profile</CardEyebrow>
           <span className={`text-[10px] font-bold ${band.text}`}>{band.label}</span>
         </div>
-        <div className="-mx-2" style={{ height: 210 }}>
+        <div className="-mx-2" style={{ height: 230 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={data} outerRadius="68%">
-              <PolarGrid stroke="rgb(var(--border) / 0.6)" />
+            <RadarChart data={data} outerRadius="64%">
+              <PolarGrid stroke="rgb(var(--border) / 0.8)" />
               <PolarAngleAxis
                 dataKey="label"
                 tick={{ fontSize: 9, fill: 'rgb(var(--on-surface-variant))' }}
               />
               <PolarRadiusAxis
-                angle={64}
+                angle={90}
                 domain={[0, 10]}
-                ticks={[0, 5, 10]}
-                tick={{ fontSize: 8, fill: 'rgb(var(--on-surface-variant) / 0.6)' }}
+                tickCount={6}
+                tick={{ fontSize: 9, fontWeight: 600, fill: 'rgb(var(--on-surface-variant))' }}
                 axisLine={false}
+                tickLine={false}
               />
               <Radar
                 name="Score"
@@ -78,6 +79,9 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
             </RadarChart>
           </ResponsiveContainer>
         </div>
+        <p className="mt-1 text-center text-[9px] font-medium text-on-surface-variant/70">
+          Each axis scored on a 1–10 scale
+        </p>
       </div>
     </Card>
   );
