@@ -1,0 +1,530 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Theme tokens.
+   Applied via <html data-theme="..."> so the server render and the client agree
+   on the first paint (no theme flash).
+
+   Colours are stored as space-separated RGB channels, not hex, so Tailwind can
+   compose opacity modifiers (bg-primary/10, border-border/60) against them via
+   rgb(var(--x) / <alpha-value>) in tailwind.config.js.
+   ========================================================================== */
+
+:root,
+[data-theme='glacier'] {
+  --bg-background: 7 11 20;
+  --bg-surface: 15 21 36;
+  --bg-surface-container: 20 28 46;
+  --bg-surface-low: 17 24 40;
+  --bg-surface-high: 30 41 59;
+  --text-on-surface: 226 236 245;
+  --text-on-surface-variant: 147 169 189;
+  --color-primary: 125 211 252;
+  --color-on-primary: 4 32 46;
+  --color-secondary: 136 180 204;
+  --color-tertiary: 200 160 240;
+  --border-color: 40 55 78;
+
+  --radius-default: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --font-headline: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --glass-blur: 18px;
+  --glass-bg: rgb(15 21 36 / 0.62);
+  --glass-border: rgb(125 211 252 / 0.12);
+  --glass-shadow: 0 8px 34px rgb(0 0 0 / 0.34);
+  --mesh-1: rgb(125 211 252 / 0.16);
+  --mesh-2: rgb(200 160 240 / 0.14);
+  --mesh-3: rgb(16 185 129 / 0.1);
+  color-scheme: dark;
+}
+
+[data-theme='sahara'] {
+  --bg-background: 250 245 238;
+  --bg-surface: 255 255 255;
+  --bg-surface-container: 255 253 250;
+  --bg-surface-low: 243 234 224;
+  --bg-surface-high: 232 222 211;
+  --text-on-surface: 42 36 32;
+  --text-on-surface-variant: 110 100 94;
+  --color-primary: 194 101 42;
+  --color-on-primary: 255 255 255;
+  --color-secondary: 87 77 70;
+  --color-tertiary: 140 60 60;
+  --border-color: 232 222 211;
+
+  --radius-default: 0.375rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --font-headline: 'EB Garamond', serif;
+  --font-body: 'Manrope', sans-serif;
+
+  --glass-blur: 0px;
+  --glass-bg: rgb(255 255 255 / 1);
+  --glass-border: rgb(232 222 211 / 1);
+  --glass-shadow: 0 2px 18px rgb(58 48 42 / 0.05);
+  --mesh-1: rgb(194 101 42 / 0.09);
+  --mesh-2: rgb(140 60 60 / 0.07);
+  --mesh-3: rgb(87 77 70 / 0.05);
+  color-scheme: light;
+}
+
+[data-theme='bento'] {
+  --bg-background: 246 248 251;
+  --bg-surface: 255 255 255;
+  --bg-surface-container: 255 255 255;
+  --bg-surface-low: 241 245 249;
+  --bg-surface-high: 203 213 225;
+  --text-on-surface: 15 23 42;
+  --text-on-surface-variant: 71 85 105;
+  --color-primary: 15 23 42;
+  --color-on-primary: 255 255 255;
+  --color-secondary: 71 85 105;
+  --color-tertiary: 14 165 233;
+  --border-color: 226 232 240;
+
+  --radius-default: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --font-headline: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --glass-blur: 0px;
+  --glass-bg: rgb(255 255 255 / 1);
+  --glass-border: rgb(226 232 240 / 1);
+  --glass-shadow: 0 1px 3px rgb(15 23 42 / 0.07);
+  --mesh-1: rgb(14 165 233 / 0.07);
+  --mesh-2: rgb(15 23 42 / 0.04);
+  --mesh-3: rgb(99 102 241 / 0.05);
+  color-scheme: light;
+}
+
+[data-theme='pastel'] {
+  --bg-background: 253 250 253;
+  --bg-surface: 255 255 255;
+  --bg-surface-container: 255 255 255;
+  --bg-surface-low: 246 240 255;
+  --bg-surface-high: 255 255 255;
+  --text-on-surface: 30 27 75;
+  --text-on-surface-variant: 91 83 196;
+  --color-primary: 99 102 241;
+  --color-on-primary: 255 255 255;
+  --color-secondary: 129 140 248;
+  --color-tertiary: 219 39 119;
+  --border-color: 224 224 252;
+
+  --radius-default: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --font-headline: 'Nunito', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+
+  --glass-blur: 14px;
+  --glass-bg: rgb(255 255 255 / 0.68);
+  --glass-border: rgb(99 102 241 / 0.14);
+  --glass-shadow: 0 10px 36px rgb(99 102 241 / 0.07);
+  --mesh-1: rgb(219 39 119 / 0.1);
+  --mesh-2: rgb(99 102 241 / 0.12);
+  --mesh-3: rgb(6 182 212 / 0.1);
+  color-scheme: light;
+}
+
+[data-theme='nebula'] {
+  --bg-background: 12 8 24;
+  --bg-surface: 22 16 40;
+  --bg-surface-container: 30 22 52;
+  --bg-surface-low: 26 19 46;
+  --bg-surface-high: 46 34 76;
+  --text-on-surface: 237 233 254;
+  --text-on-surface-variant: 168 155 214;
+  --color-primary: 167 139 250;
+  --color-on-primary: 24 14 46;
+  --color-secondary: 129 140 248;
+  --color-tertiary: 34 211 238;
+  --border-color: 55 42 90;
+
+  --radius-default: 0.625rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.75rem;
+  --font-headline: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --glass-blur: 22px;
+  --glass-bg: rgb(22 16 40 / 0.6);
+  --glass-border: rgb(167 139 250 / 0.16);
+  --glass-shadow: 0 10px 40px rgb(0 0 0 / 0.45);
+  --mesh-1: rgb(167 139 250 / 0.2);
+  --mesh-2: rgb(34 211 238 / 0.14);
+  --mesh-3: rgb(236 72 153 / 0.12);
+  color-scheme: dark;
+}
+
+[data-theme='carbon'] {
+  --bg-background: 10 10 10;
+  --bg-surface: 18 18 18;
+  --bg-surface-container: 24 24 24;
+  --bg-surface-low: 22 22 22;
+  --bg-surface-high: 38 38 38;
+  --text-on-surface: 237 237 237;
+  --text-on-surface-variant: 161 161 161;
+  --color-primary: 245 158 11;
+  --color-on-primary: 28 18 0;
+  --color-secondary: 212 212 212;
+  --color-tertiary: 16 185 129;
+  --border-color: 45 45 45;
+
+  --radius-default: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.375rem;
+  --font-headline: 'JetBrains Mono', ui-monospace, monospace;
+  --font-body: 'Inter', sans-serif;
+
+  --glass-blur: 0px;
+  --glass-bg: rgb(18 18 18 / 1);
+  --glass-border: rgb(45 45 45 / 1);
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 0.03);
+  --mesh-1: rgb(245 158 11 / 0.07);
+  --mesh-2: rgb(255 255 255 / 0.03);
+  --mesh-3: rgb(16 185 129 / 0.05);
+  color-scheme: dark;
+}
+
+[data-theme='sunset'] {
+  --bg-background: 24 12 20;
+  --bg-surface: 38 20 32;
+  --bg-surface-container: 48 26 40;
+  --bg-surface-low: 44 23 36;
+  --bg-surface-high: 68 36 54;
+  --text-on-surface: 253 232 240;
+  --text-on-surface-variant: 214 165 185;
+  --color-primary: 251 146 60;
+  --color-on-primary: 46 18 4;
+  --color-secondary: 244 114 182;
+  --color-tertiary: 250 204 21;
+  --border-color: 76 40 60;
+
+  --radius-default: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --glass-blur: 16px;
+  --glass-bg: rgb(38 20 32 / 0.66);
+  --glass-border: rgb(251 146 60 / 0.18);
+  --glass-shadow: 0 10px 38px rgb(0 0 0 / 0.4);
+  --mesh-1: rgb(251 146 60 / 0.18);
+  --mesh-2: rgb(244 114 182 / 0.14);
+  --mesh-3: rgb(250 204 21 / 0.1);
+  color-scheme: dark;
+}
+
+[data-theme='matcha'] {
+  --bg-background: 244 247 240;
+  --bg-surface: 255 255 255;
+  --bg-surface-container: 252 254 250;
+  --bg-surface-low: 236 243 231;
+  --bg-surface-high: 214 228 205;
+  --text-on-surface: 26 41 27;
+  --text-on-surface-variant: 90 110 88;
+  --color-primary: 22 128 84;
+  --color-on-primary: 255 255 255;
+  --color-secondary: 74 103 65;
+  --color-tertiary: 180 120 30;
+  --border-color: 219 231 212;
+
+  --radius-default: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+
+  --glass-blur: 10px;
+  --glass-bg: rgb(255 255 255 / 0.78);
+  --glass-border: rgb(22 128 84 / 0.14);
+  --glass-shadow: 0 6px 26px rgb(31 61 33 / 0.07);
+  --mesh-1: rgb(22 128 84 / 0.1);
+  --mesh-2: rgb(180 120 30 / 0.08);
+  --mesh-3: rgb(74 103 65 / 0.06);
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--border-color));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: rgb(var(--bg-background));
+    color: rgb(var(--text-on-surface));
+    font-family: var(--font-body);
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Ambient mesh backdrop. Purely decorative, sits behind everything. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(60rem 60rem at 12% -10%, var(--mesh-1), transparent 60%),
+      radial-gradient(50rem 50rem at 105% 8%, var(--mesh-2), transparent 60%),
+      radial-gradient(45rem 45rem at 50% 115%, var(--mesh-3), transparent 60%);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-headline);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--bg-surface-high));
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-secondary));
+  }
+}
+
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-strong {
+    background: rgb(var(--bg-surface-container));
+    backdrop-filter: blur(calc(var(--glass-blur) + 6px));
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Tile lift used across the bento grid. */
+  .tile-hover {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+  .tile-hover:hover {
+    transform: translateY(-3px);
+    border-color: rgb(var(--color-primary) / 0.38);
+  }
+
+  /* Tailwind only emits a keyframe when a matching utility is used, and the
+     skeleton sweep is applied in CSS rather than via animate-shimmer, so the
+     keyframe has to be declared here or the sweep never runs. */
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--bg-surface-low));
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--text-on-surface) / 0.08),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .text-gradient {
+    background-image: linear-gradient(
+      100deg,
+      rgb(var(--color-primary)),
+      rgb(var(--color-tertiary)) 55%,
+      rgb(var(--color-primary))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Drifting gradient wash. Used behind AI surfaces while a model is working,
+     so "busy" reads as ambient motion rather than a spinner. */
+  .aurora-surface {
+    position: relative;
+    overflow: hidden;
+    background-image: linear-gradient(
+      120deg,
+      rgb(var(--color-primary) / 0.14),
+      rgb(var(--color-tertiary) / 0.12) 32%,
+      transparent 55%,
+      rgb(var(--color-primary) / 0.12) 82%
+    );
+    background-size: 260% 260%;
+    animation: aurora 6s ease-in-out infinite;
+  }
+
+  /* Thin gradient rule pinned to the top edge of a card. */
+  .accent-top::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--color-primary) / 0.9),
+      rgb(var(--color-tertiary) / 0.7),
+      transparent
+    );
+  }
+
+  /* Faint dot lattice for empty and hero panels. */
+  .dot-grid {
+    background-image: radial-gradient(rgb(var(--text-on-surface) / 0.09) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+
+  /* -------- Animated radar backdrop for the landing hero. Purely decorative. -------- */
+
+  @keyframes radar-blip {
+    0%,
+    100% {
+      opacity: 0.18;
+      transform: scale(0.8);
+    }
+    42% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+    58% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .radar-bg {
+    opacity: 0.75;
+    -webkit-mask-image: radial-gradient(58% 58% at 55% 40%, #000 46%, transparent 100%);
+    mask-image: radial-gradient(58% 58% at 55% 40%, #000 46%, transparent 100%);
+  }
+
+  .radar-ring {
+    stroke: rgb(var(--color-primary) / 0.13);
+  }
+  .radar-ring-inner {
+    stroke: rgb(var(--color-primary) / 0.22);
+  }
+
+  .radar-sweep {
+    background: conic-gradient(
+      from 0deg,
+      rgb(var(--color-primary) / 0.4) 0deg,
+      rgb(var(--color-primary) / 0.0) 84deg
+    );
+    animation: orbit 7s linear infinite;
+  }
+
+  .radar-scan {
+    background: rgb(var(--color-primary) / 0.55);
+    box-shadow: 0 0 14px 2px rgb(var(--color-primary) / 0.45);
+    transform-origin: 50% 100%;
+    animation: orbit 7s linear infinite;
+  }
+
+  .radar-blip {
+    position: absolute;
+    border-radius: 9999px;
+    animation: radar-blip 7s ease-in-out infinite;
+  }
+
+  /* A slightly stronger lift than tile-hover, for primary interactive cards. */
+  .tile-rise {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .tile-rise:hover {
+    transform: translateY(-4px);
+    border-color: rgb(var(--color-primary) / 0.45);
+    box-shadow: 0 16px 42px rgb(0 0 0 / 0.16);
+  }
+
+  /* Vertical rail used by threaded comments to show the reply relationship. */
+  .thread-line {
+    border-left: 2px solid rgb(var(--border-color));
+    transition: border-color 0.2s ease;
+  }
+  .thread-line:hover {
+    border-left-color: rgb(var(--color-primary) / 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Recharts inherits colours from the theme tokens rather than hardcoded hexes. */
+.recharts-cartesian-axis-tick text {
+  fill: rgb(var(--text-on-surface-variant));
+  font-size: 10px;
+  font-weight: 600;
+}
+.recharts-cartesian-grid line {
+  stroke: rgb(var(--border-color));
+}
+.recharts-default-tooltip {
+  border-radius: var(--radius-default) !important;
+}

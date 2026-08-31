@@ -1,0 +1,56 @@
+{
+  "name": "foundersignal-next",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-powered Indian startup opportunity intelligence platform",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "predev": "node scripts/fix-encoding.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/fix-encoding.mjs",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "fix:encoding": "node scripts/fix-encoding.mjs",
+    "db:push": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/bootstrap-cli.mjs scripts/db-push.mjs",
+    "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/bootstrap-cli.mjs scripts/db-seed.mjs",
+    "ingest": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/bootstrap-cli.mjs scripts/ingest.mjs",
+    "ingest:dry": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/bootstrap-cli.mjs scripts/ingest.mjs --dry",
+    "smoke": "node scripts/smoke.mjs",
+    "verify:ai": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/verify-ai.mjs"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-dropdown-menu": "^2.1.4",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-progress": "^1.1.1",
+    "@radix-ui/react-select": "^2.1.4",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-tabs": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.6",
+    "@supabase/supabase-js": "^2.47.10",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "fast-xml-parser": "^4.5.1",
+    "lucide-react": "^0.469.0",
+    "next": "^14.2.22",
+    "next-auth": "^4.24.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.15.0",
+    "sonner": "^1.7.1",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.22",
+    "pg": "^8.23.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}
