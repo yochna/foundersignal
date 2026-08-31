@@ -91,7 +91,7 @@ const REPORT_CONTENTS = [
 ];
 
 export function PricingModal() {
-  const { isPricingModalOpen, closePricingModal, startCheckout, isCheckingOut } = useSubscription();
+  const { isPricingModalOpen, closePricingModal, startCheckout, isCheckingOut, paymentsLive } = useSubscription();
 
   return (
     <Dialog open={isPricingModalOpen} onOpenChange={(open) => !open && closePricingModal()}>
@@ -130,6 +130,11 @@ export function PricingModal() {
             Comparable market-research engagements start around <span className="mono font-bold text-on-surface">₹75,000</span>.
             Here it is continuous, updated daily, and costs less per day than a coffee.
           </p>
+          {!paymentsLive ? (
+            <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+              Payments are launching soon. Unlocking a plan below gives you free early access now — no charge, no card required.
+            </p>
+          ) : null}
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {REPORT_CONTENTS.map(({ icon: Icon, title, detail }) => (
               <div
@@ -197,7 +202,11 @@ export function PricingModal() {
               onClick={() => startCheckout('starter')}
               disabled={isCheckingOut}
             >
-              {isCheckingOut ? 'Opening checkout…' : 'Start with Starter (₹499)'}
+              {isCheckingOut
+                ? 'Opening checkout…'
+                : paymentsLive
+                ? 'Start with Starter (₹499)'
+                : 'Get Starter free (early access)'}
             </Button>
           </Card>
 
@@ -257,7 +266,13 @@ export function PricingModal() {
               disabled={isCheckingOut}
             >
               <Zap className="h-3.5 w-3.5 mr-1 fill-current" />
-              <span>{isCheckingOut ? 'Opening checkout…' : 'Unlock Venture Pro (₹4,999)'}</span>
+              <span>
+                {isCheckingOut
+                  ? 'Opening checkout…'
+                  : paymentsLive
+                  ? 'Unlock Venture Pro (₹4,999)'
+                  : 'Get Venture Pro free (early access)'}
+              </span>
               <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
           </Card>
@@ -265,7 +280,7 @@ export function PricingModal() {
 
         <div className="mt-5 flex items-center justify-center gap-1.5 text-center text-[11px] text-on-surface-variant/75">
           <Shield className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-          <span>Instant activation • Cancel anytime</span>
+          <span>{paymentsLive ? 'Instant activation • Cancel anytime' : 'Instant activation • Free during early access'}</span>
         </div>
       </DialogContent>
     </Dialog>

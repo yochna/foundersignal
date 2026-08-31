@@ -7,6 +7,7 @@ import {
   hasCronSecret,
   hasRedditAuth,
   hasGithubToken,
+  hasRazorpay,
   isProd,
   quotas,
   gemini,
@@ -121,6 +122,17 @@ export const GET = withApi(async () => {
     });
   }
 
+  // --- payments ----------------------------------------------------------------
+  if (!hasRazorpay) {
+    warnings.push({
+      code: 'PAYMENTS_UNCONFIGURED',
+      level: 'info',
+      title: 'Razorpay is not configured',
+      detail:
+        'Checkout falls back to a labelled free demo grant instead of a real charge. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to accept real payments.',
+    });
+  }
+
   const config = configSnapshot();
 
   return {
@@ -168,6 +180,10 @@ export const GET = withApi(async () => {
               opportunitiesCount: lastRun.opportunitiesCount,
             }
           : null,
+      },
+      payments: {
+        configured: hasRazorpay,
+        mode: hasRazorpay ? 'live' : 'demo',
       },
     },
     quotas: config.quotas,

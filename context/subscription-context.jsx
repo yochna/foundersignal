@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 const SubscriptionContext = React.createContext({
   isPro: false,
   plan: 'free',
+  paymentsLive: true,
   isPricingModalOpen: false,
   isCheckingOut: false,
   openPricingModal: () => {},
@@ -41,6 +42,9 @@ export function SubscriptionProvider({ children }) {
   const [isPricingModalOpen, setIsPricingModalOpen] = React.useState(false);
   const [isCheckingOut, setIsCheckingOut] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
+  // Assume live until /api/health says otherwise, so the CTA never flashes
+  // the "demo" copy for a split second on a real, fully-configured deploy.
+  const [paymentsLive, setPaymentsLive] = React.useState(true);
 
   const refreshEntitlement = React.useCallback(async () => {
     try {
@@ -59,6 +63,21 @@ export function SubscriptionProvider({ children }) {
   React.useEffect(() => {
     setMounted(true);
     refreshEntitlement();
+
+    let cancelled = false;
+    fetch('/api/health', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        const configured = data?.subsystems?.payments?.configured;
+        if (typeof configured === 'boolean') setPaymentsLive(configured);
+      })
+      .catch(() => {
+        // Leave the optimistic default; the pricing modal still works either way.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [session, refreshEntitlement]);
 
   const openPricingModal = React.useCallback(() => setIsPricingModalOpen(true), []);
@@ -91,8 +110,8 @@ export function SubscriptionProvider({ children }) {
           if (!demoRes.ok || !demoData?.ok) throw new Error('Demo upgrade failed');
           await refreshEntitlement();
           setIsPricingModalOpen(false);
-          toast.success('Pro unlocked (demo mode)', {
-            description: 'Razorpay keys are not configured yet, so this is a free demo grant, not a real charge.',
+          toast.success('Pro unlocked — free early access', {
+            description: 'Payments are launching soon; this is free for now, not a real charge.',
             duration: 6000,
           });
           return;
@@ -167,6 +186,7 @@ export function SubscriptionProvider({ children }) {
     () => ({
       isPro: mounted ? isPro : false,
       plan: mounted ? plan : 'free',
+      paymentsLive,
       isPricingModalOpen,
       isCheckingOut,
       openPricingModal,
@@ -174,7 +194,18 @@ export function SubscriptionProvider({ children }) {
       startCheckout,
       downgradeToFree,
     }),
-    [isPro, plan, isPricingModalOpen, isCheckingOut, mounted, openPricingModal, closePricingModal, startCheckout, downgradeToFree]
+    [
+      isPro,
+      plan,
+      paymentsLive,
+      isPricingModalOpen,
+      isCheckingOut,
+      mounted,
+      openPricingModal,
+      closePricingModal,
+      startCheckout,
+      downgradeToFree,
+    ]
   );
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
