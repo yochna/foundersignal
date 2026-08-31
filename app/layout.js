@@ -3,6 +3,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { DEFAULT_THEME, THEME_COOKIE, normalizeTheme, themeBootstrapScript } from '@/lib/themes';
 import { appUrl } from '@/lib/config';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   metadataBase: new URL(appUrl),
@@ -69,6 +70,7 @@ export default function RootLayout({ children }) {
           Skip to content
         </a>
         <Providers initialTheme={theme}>{children}</Providers>
+        <Analytics beforeSend={(event) => (event.url.includes('/admin') ? null : event)} />
       </body>
     </html>
   );
