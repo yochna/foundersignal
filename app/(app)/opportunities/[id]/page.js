@@ -240,41 +240,41 @@ export default async function OpportunityDetailPage({ params }) {
           </p>
         ) : null}
 
-      {opportunity.whyInteresting ? (
-  <div className="mt-5 grid max-w-4xl grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4">
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
-      <Lightbulb
-        className="h-4 w-4 text-primary"
-        aria-hidden="true"
-      />
-    </span>
+        {opportunity.whyInteresting ? (
+          <div className="mt-5 grid max-w-4xl grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
+              <Lightbulb
+                className="h-4 w-4 text-primary"
+                aria-hidden="true"
+              />
+            </span>
 
-    <p className="m-0 min-w-0 self-center text-xs leading-5 text-on-surface-variant sm:text-sm sm:leading-6">
-      <span className="font-bold text-on-surface">
-        Why this surfaced now:{" "}
-      </span>
-      {opportunity.whyInteresting}
-    </p>
-  </div>
-) : null}
+            <p className="m-0 min-w-0 self-center text-xs leading-5 text-on-surface-variant sm:text-sm sm:leading-6">
+              <span className="font-bold text-on-surface">
+                Why this surfaced now:{" "}
+              </span>
+              {opportunity.whyInteresting}
+            </p>
+          </div>
+        ) : null}
 
         {opportunity.monetizationHypothesis ? (
-  <div className="mt-3 grid max-w-4xl grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4">
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-signal/15">
-      <Coins
-        className="h-4 w-4 text-emerald-500"
-        aria-hidden="true"
-      />
-    </span>
+          <div className="mt-3 grid max-w-4xl grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-signal/15">
+              <Coins
+                className="h-4 w-4 text-emerald-500"
+                aria-hidden="true"
+              />
+            </span>
 
-    <p className="m-0 min-w-0 self-center text-xs leading-5 text-on-surface-variant sm:text-sm sm:leading-6">
-      <span className="font-bold text-on-surface">
-        Monetization hypothesis:{" "}
-      </span>
-      {opportunity.monetizationHypothesis}
-    </p>
-  </div>
-) : null}
+            <p className="m-0 min-w-0 self-center text-xs leading-5 text-on-surface-variant sm:text-sm sm:leading-6">
+              <span className="font-bold text-on-surface">
+                Monetization hypothesis:{" "}
+              </span>
+              {opportunity.monetizationHypothesis}
+            </p>
+          </div>
+        ) : null}
             </header>
 
             {/* Share / Export toolbar */}
@@ -488,35 +488,38 @@ export default async function OpportunityDetailPage({ params }) {
           >
             <PaywallGate isLocked={true} title="Technical Architecture Roadmap" description="Unlock Founder Pro for sprint-by-sprint MVP build plans and component tech stack specs.">
               {roadmap.length ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 [grid-auto-rows:1fr]">
                   {roadmap.map((phase, idx) => (
-                    <div key={idx} className="relative rounded-xl border border-border bg-surface-low/50 p-4.5 pl-14">
-                      <span className="absolute left-4 top-4.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-black text-primary">
+                    <div
+                      key={idx}
+                      className="relative flex h-full min-h-[145px] flex-col rounded-xl border border-border bg-surface-low/50 p-4 pl-14 sm:p-4 sm:pl-14"
+                    >
+                      <span className="absolute left-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-black text-primary">
                         {idx + 1}
                       </span>
 
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <h4 className="text-xs sm:text-sm font-bold text-on-surface">{phase.phase}</h4>
-                        <Badge variant="indigo" className="text-[10px]">{phase.duration}</Badge>
+                      <div className="mb-3 flex min-h-6 flex-wrap items-center justify-between gap-2">
+                        <h4 className="text-xs font-bold text-on-surface sm:text-sm">{phase.phase}</h4>
+                        <Badge variant="indigo" className="shrink-0 text-[10px]">{phase.duration}</Badge>
                       </div>
 
-                      <div className="mb-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Key Deliverables</p>
-                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-on-surface-variant">
+                      <div className="mb-3 flex-1">
+                        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Key Deliverables</p>
+                        <ul className="grid grid-cols-1 gap-x-8 gap-y-1.5 text-xs text-on-surface-variant sm:grid-cols-2">
                           {phase.deliverables?.map((d, dIdx) => (
-                            <li key={dIdx} className="flex items-start gap-1.5">
-                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                              <span>{d}</span>
+                            <li key={dIdx} className="flex min-w-0 items-start gap-1.5">
+                              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                              <span className="min-w-0 leading-relaxed">{d}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
                       {phase.techStack?.length ? (
-                        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-border/50">
-                          <span className="text-[10px] font-bold text-on-surface-variant mr-1">Stack:</span>
+                        <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border/50 pt-2">
+                          <span className="mr-1 shrink-0 text-[10px] font-bold text-on-surface-variant">Stack:</span>
                           {phase.techStack.map((tech, tIdx) => (
-                            <span key={tIdx} className="rounded bg-surface-container px-2 py-0.5 text-[10px] mono font-semibold text-on-surface">
+                            <span key={tIdx} className="rounded bg-surface-container px-2 py-0.5 text-[10px] font-semibold text-on-surface mono">
                               {tech}
                             </span>
                           ))}
