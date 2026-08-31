@@ -2,11 +2,19 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/next';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/components/shell/theme-provider';
 import { SubscriptionProvider } from '@/context/subscription-context';
 import { PricingModal } from '@/components/opportunity/pricing-modal';
 import { SplashScreen } from '@/components/shell/splash-screen';
+
+// Defined inside a Client Component so the `beforeSend` callback never has to
+// cross the server -> client boundary (functions aren't serializable props
+// on a Server Component like app/layout.js).
+function ScopedAnalytics() {
+  return <Analytics beforeSend={(event) => (event.url.includes('/admin') ? null : event)} />;
+}
 
 /** Client-side provider stack. Kept in one file so app/layout.js stays a server component. */
 export function Providers({ initialTheme, children }) {
@@ -18,6 +26,7 @@ export function Providers({ initialTheme, children }) {
             <SplashScreen />
             {children}
             <PricingModal />
+            <ScopedAnalytics />
             <Toaster
               position="bottom-right"
               closeButton
