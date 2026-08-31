@@ -240,29 +240,41 @@ export default async function OpportunityDetailPage({ params }) {
           </p>
         ) : null}
 
-        {opportunity.whyInteresting ? (
-          <div className="mt-5 flex max-w-4xl items-start gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4.5">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15">
-              <Lightbulb className="h-4 w-4 text-primary" aria-hidden="true" />
-            </span>
-            <p className="pt-1 text-xs sm:text-sm leading-relaxed text-on-surface-variant">
-              <span className="font-bold text-on-surface">Why this surfaced now: </span>
-              {opportunity.whyInteresting}
-            </p>
-          </div>
-        ) : null}
+      {opportunity.whyInteresting ? (
+  <div className="mt-5 grid max-w-4xl grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
+      <Lightbulb
+        className="h-4 w-4 text-primary"
+        aria-hidden="true"
+      />
+    </span>
+
+    <p className="m-0 min-w-0 self-center text-xs leading-5 text-on-surface-variant sm:text-sm sm:leading-6">
+      <span className="font-bold text-on-surface">
+        Why this surfaced now:{" "}
+      </span>
+      {opportunity.whyInteresting}
+    </p>
+  </div>
+) : null}
 
         {opportunity.monetizationHypothesis ? (
-          <div className="mt-3 flex max-w-4xl items-start gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4.5">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-signal/15">
-              <Coins className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-            </span>
-            <p className="pt-1 text-xs sm:text-sm leading-relaxed text-on-surface-variant">
-              <span className="font-bold text-on-surface">Monetization hypothesis: </span>
-              {opportunity.monetizationHypothesis}
-            </p>
-          </div>
-        ) : null}
+  <div className="mt-3 grid max-w-4xl grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-signal/15">
+      <Coins
+        className="h-4 w-4 text-emerald-500"
+        aria-hidden="true"
+      />
+    </span>
+
+    <p className="m-0 min-w-0 self-center text-xs leading-5 text-on-surface-variant sm:text-sm sm:leading-6">
+      <span className="font-bold text-on-surface">
+        Monetization hypothesis:{" "}
+      </span>
+      {opportunity.monetizationHypothesis}
+    </p>
+  </div>
+) : null}
             </header>
 
             {/* Share / Export toolbar */}
