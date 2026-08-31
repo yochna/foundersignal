@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="FounderSignal">
-  <rect width="180" height="180" rx="40" fill="#7dd3fc"/>
-  <g fill="#04202e" stroke="#04202e">
+  <rect width="180" height="180" rx="40" fill="#c2652a"/>
+  <g fill="#ffffff" stroke="#ffffff">
     <circle cx="90" cy="90" r="56" fill="none" stroke-width="6" opacity="0.28"/>
     <circle cx="90" cy="90" r="36" fill="none" stroke-width="6" opacity="0.45"/>
     <circle cx="90" cy="90" r="17" fill="none" stroke-width="6" opacity="0.7"/>
-    <path d="M90 90 L90 39 A51 51 0 0 1 126.6 60.8 Z" fill="#04202e" opacity="0.35"/>
-    <circle cx="121" cy="59" r="8.5" fill="#04202e"/>
+    <path d="M90 90 L90 39 A51 51 0 0 1 126.6 60.8 Z" fill="#ffffff" opacity="0.35"/>
+    <circle cx="121" cy="59" r="8.5" fill="#ffffff"/>
   </g>
 </svg>

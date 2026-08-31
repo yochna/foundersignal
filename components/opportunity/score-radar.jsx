@@ -24,7 +24,8 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
   const data = SCORE_DIMENSIONS.map((dimension) => ({
     label: dimension.label.replace(' scarcity', '').replace(' gap', '').replace(' relevance', ''),
     key: dimension.key,
-    value: currentScores?.[dimension.key] ?? 0,
+    // Scores are stored 0-100; show them on a 0-10 scale so the radial axis reads cleanly.
+    value: (currentScores?.[dimension.key] ?? 0) / 10,
   }));
 
   const Empty = () => (
@@ -59,7 +60,13 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
                 dataKey="label"
                 tick={{ fontSize: 9, fill: 'rgb(var(--on-surface-variant))' }}
               />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+              <PolarRadiusAxis
+                angle={90}
+                domain={[0, 10]}
+                tickCount={6}
+                tick={{ fontSize: 8, fill: 'rgb(var(--on-surface-variant))' }}
+                axisLine={false}
+              />
               <Radar
                 name="Score"
                 dataKey="value"

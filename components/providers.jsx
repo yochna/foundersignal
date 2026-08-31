@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/components/shell/theme-provider';
 import { SubscriptionProvider } from '@/context/subscription-context';
 import { PricingModal } from '@/components/opportunity/pricing-modal';
+import { SplashScreen } from '@/components/shell/splash-screen';
 
 /** Client-side provider stack. Kept in one file so app/layout.js stays a server component. */
 export function Providers({ initialTheme, children }) {
@@ -14,6 +15,7 @@ export function Providers({ initialTheme, children }) {
       <ThemeProvider initialTheme={initialTheme}>
         <SubscriptionProvider>
           <TooltipProvider delayDuration={250} skipDelayDuration={400}>
+            <SplashScreen />
             {children}
             <PricingModal />
             <Toaster

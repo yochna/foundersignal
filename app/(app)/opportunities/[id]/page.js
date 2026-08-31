@@ -241,8 +241,8 @@ export default async function OpportunityDetailPage({ params }) {
         ) : null}
 
         {opportunity.whyInteresting ? (
-          <div className="mt-5 flex max-w-4xl items-start gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4.5">
-            <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+          <div className="mt-5 flex max-w-4xl items-center gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4.5">
+            <Lightbulb className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
             <p className="text-xs sm:text-sm leading-relaxed text-on-surface-variant">
               <span className="font-bold text-on-surface">Why this surfaced now: </span>
               {opportunity.whyInteresting}
@@ -251,8 +251,8 @@ export default async function OpportunityDetailPage({ params }) {
         ) : null}
 
         {opportunity.monetizationHypothesis ? (
-          <div className="mt-3 flex max-w-4xl items-start gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4.5">
-            <Coins className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" aria-hidden="true" />
+          <div className="mt-3 flex max-w-4xl items-center gap-3 rounded-xl border border-emerald-signal/25 bg-emerald-signal/8 p-4.5">
+            <Coins className="h-5 w-5 shrink-0 text-emerald-500" aria-hidden="true" />
             <p className="text-xs sm:text-sm leading-relaxed text-on-surface-variant">
               <span className="font-bold text-on-surface">Monetization hypothesis: </span>
               {opportunity.monetizationHypothesis}
@@ -474,14 +474,13 @@ export default async function OpportunityDetailPage({ params }) {
               {roadmap.length ? (
                 <div className="space-y-4">
                   {roadmap.map((phase, idx) => (
-                    <div key={idx} className="rounded-xl border border-border bg-surface-low/50 p-4.5">
+                    <div key={idx} className="relative rounded-xl border border-border bg-surface-low/50 p-4.5 pl-14">
+                      <span className="absolute left-4 top-4.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-black text-primary">
+                        {idx + 1}
+                      </span>
+
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-black text-primary">
-                            {idx + 1}
-                          </span>
-                          <h4 className="text-xs sm:text-sm font-bold text-on-surface">{phase.phase}</h4>
-                        </div>
+                        <h4 className="text-xs sm:text-sm font-bold text-on-surface">{phase.phase}</h4>
                         <Badge variant="indigo" className="text-[10px]">{phase.duration}</Badge>
                       </div>
 

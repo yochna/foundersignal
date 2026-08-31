@@ -34,6 +34,11 @@ export const metadata = {
       'Scored startup opportunity briefs built from live hiring, regulatory, community and open-source signals for the Indian market.',
   },
   robots: { index: true, follow: true },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FounderSignal',
+  },
 };
 
 export const viewport = {
