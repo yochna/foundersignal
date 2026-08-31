@@ -390,12 +390,42 @@ export default async function OpportunityDetailPage({ params }) {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">SAM (Target Addressable)</p>
                   <p className="mt-1 text-base font-bold text-primary">{tam.sam || '₹750 Cr'}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-surface-low/60 p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Annual CAGR</p>
-                  <p className="mt-1 text-base font-black text-emerald-500">{tam.cagr || '24.5% YoY'}</p>
-                </div>
-              </div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+  <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">
+    SOM
+  </p>
 
+  <p className="mt-1 text-lg font-black text-emerald-500">
+    {tam.som || '₹75 Cr'}
+  </p>
+
+  <p className="mt-2 text-[10px] leading-relaxed text-on-surface-variant">
+    Serviceable obtainable market based on realistic initial market penetration.
+  </p>
+</div>
+              </div>
+<div className="mb-4 rounded-xl border border-border bg-surface-low/60 p-4">
+  <div className="flex items-center justify-between gap-3">
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+        Annual CAGR
+      </p>
+
+      <p className="mt-1 text-lg font-black text-emerald-500">
+        {tam.cagr || '24.5% YoY'}
+      </p>
+    </div>
+
+    <TrendingUp
+      className="h-5 w-5 text-emerald-500"
+      aria-hidden="true"
+    />
+  </div>
+
+  <p className="mt-2 text-[10px] leading-relaxed text-on-surface-variant">
+    Expected annual growth rate of the addressable market.
+  </p>
+</div>
               {tam.metricsBreakdown ? (
                 <div className="rounded-lg border border-border bg-surface-low/50 p-4 text-xs text-on-surface-variant leading-relaxed">
                   <span className="font-bold text-on-surface">Bottom-Up Market Breakdown: </span>
