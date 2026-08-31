@@ -21,12 +21,19 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
   const currentScores = opportunity?.scores ?? scores ?? {};
   const band = scoreBand(currentScore);
 
-  const data = SCORE_DIMENSIONS.map((dimension) => ({
-    label: dimension.label.replace(' scarcity', '').replace(' gap', '').replace(' relevance', ''),
-    key: dimension.key,
-    // Scores are stored 0-100; show them on a 0-10 scale so the radial axis reads cleanly.
-    value: (currentScores?.[dimension.key] ?? 0) / 10,
-  }));
+  const data = SCORE_DIMENSIONS.map((dimension) => {
+    const rawScore = Number(currentScores?.[dimension.key]);
+
+    return {
+      label: dimension.label.replace(' scarcity', '').replace(' gap', '').replace(' relevance', ''),
+      key: dimension.key,
+      // Scores are stored 0-100; map them to the product's explicit 1-10 score scale.
+      // Keep missing dimensions as null so they are not falsely rendered as 1/10.
+      value: Number.isFinite(rawScore) && rawScore > 0
+        ? Math.min(10, Math.max(1, rawScore / 10))
+        : null,
+    };
+  });
 
   const Empty = () => (
     <p className="py-8 text-center text-xs text-on-surface-variant">
@@ -34,7 +41,7 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
     </p>
   );
 
-  if (!data.some((d) => d.value > 0)) {
+  if (!data.some((d) => d.value != null)) {
     return (
       <Card tone="glass" className={className}>
         <div className="p-4">
@@ -62,8 +69,8 @@ export function ScoreRadar({ opportunity = {}, scores, overallScore, className }
               />
               <PolarRadiusAxis
                 angle={90}
-                domain={[0, 10]}
-                tickCount={6}
+                domain={[1, 10]}
+                ticks={[1, 3, 5, 7, 9, 10]}
                 tick={{ fontSize: 9, fontWeight: 600, fill: 'rgb(var(--on-surface-variant))' }}
                 axisLine={false}
                 tickLine={false}
