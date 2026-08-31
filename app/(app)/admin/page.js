@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Coins,
   ClipboardList,
+  Terminal,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shell/page-header';
 import { KpiTile } from '@/components/radar/kpi-tile';
@@ -28,6 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Meter } from '@/components/ui/progress';
 import { AdminManager } from '@/components/admin/admin-manager';
+import { VercelAnalyticsPanel } from '@/components/admin/vercel-analytics-panel';
 import { ErrorPanel } from '@/components/feedback/error-panel';
 import { requireAdmin } from '@/lib/auth';
 import { getAdminStats } from '@/lib/admin';
@@ -128,7 +130,6 @@ export default async function AdminPage() {
   }
 
   const { config, store, feed, engagement, usage, runs, sourceHealth } = stats;
-
   return (
     <>
       <PageHeader
@@ -204,6 +205,64 @@ export default async function AdminPage() {
           hint="Ideas scored to date"
         />
       </div>
+
+      {/* System log */}
+      <Card tone="glass" className="mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardEyebrow icon={Terminal}>System log</CardEyebrow>
+            <p className="mt-1.5 max-w-2xl text-[11px] leading-relaxed text-on-surface-variant">
+              Recent ingestion activity and admin-side errors. Runtime request logs still live in
+              Vercel&apos;s Logs view.
+            </p>
+          </div>
+          <Button asChild variant="secondary" size="sm">
+            <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">
+              Open Vercel logs
+              <ExternalLink />
+            </a>
+          </Button>
+        </div>
+
+        {runs.length === 0 && stats.partialErrors.length === 0 ? (
+          <p className="mt-4 text-[11px] text-on-surface-variant">No system events recorded yet.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-border/60 rounded-xl border border-border/60">
+            {stats.partialErrors.map((error, index) => (
+              <li key={`error-${index}`} className="flex items-start gap-3 bg-rose-500/5 px-3 py-2.5">
+                <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-signal" />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-rose-signal">Admin panel error</p>
+                  <p className="mt-0.5 break-words text-[10px] text-on-surface-variant">{error}</p>
+                </div>
+              </li>
+            ))}
+            {runs.slice(0, 8).map((run) => (
+              <li key={run.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5">
+                {run.status === 'success' ? (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-signal" />
+                ) : run.status === 'failed' ? (
+                  <XCircle className="h-3.5 w-3.5 text-rose-signal" />
+                ) : (
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-signal" />
+                )}
+                <span className="text-[10px] font-bold text-on-surface">Ingestion {run.status}</span>
+                <span className="mono text-[9px] text-on-surface-variant">
+                  {formatRelativeTime(run.startedAt)}
+                </span>
+                <span className="text-[9px] text-on-surface-variant">
+                  {run.signalsCount} signals · {run.opportunitiesCount} briefs
+                </span>
+                {run.error ? (
+                  <span className="min-w-0 flex-1 truncate text-[9px] text-amber-signal">{run.error}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <VercelAnalyticsPanel />
 
       {/* Idea Validator audit log */}
       <Card tone="glass" className="mb-6 p-5">
