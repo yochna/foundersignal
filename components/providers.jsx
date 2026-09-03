@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/shell/theme-provider';
 import { SubscriptionProvider } from '@/context/subscription-context';
 import { PricingModal } from '@/components/opportunity/pricing-modal';
 import { SplashScreen } from '@/components/shell/splash-screen';
+import { ActivityTracker } from '@/components/analytics/activity-tracker';
 
 // Defined inside a Client Component so the `beforeSend` callback never has to
 // cross the server -> client boundary (functions aren't serializable props
@@ -27,6 +28,7 @@ export function Providers({ initialTheme, children }) {
             {children}
             <PricingModal />
             <ScopedAnalytics />
+            <ActivityTracker />
             <Toaster
               position="bottom-right"
               closeButton

@@ -19,11 +19,15 @@ import {
   Coins,
   ClipboardList,
   Terminal,
+  History,
+  Globe,
+  MousePointerClick,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shell/page-header';
 import { KpiTile } from '@/components/radar/kpi-tile';
 import { IngestTrigger } from '@/components/admin/ingest-trigger';
 import { CallsChart, CostChart } from '@/components/admin/usage-chart';
+import { VisitorsChart } from '@/components/admin/visitors-chart';
 import { Card, CardEyebrow } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,7 +37,8 @@ import { ErrorPanel } from '@/components/feedback/error-panel';
 import { requireAdmin } from '@/lib/auth';
 import { getAdminStats } from '@/lib/admin';
 import { repo } from '@/lib/db';
-import { adminEmails } from '@/lib/config';
+import { adminEmails, hasVercelAnalytics } from '@/lib/config';
+import { getWebAnalyticsSummary } from '@/lib/vercel-analytics';
 import { formatNumber, formatRelativeTime, formatUsd, truncate } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -128,6 +133,33 @@ export default async function AdminPage() {
     console.error('[admin] idea validator log failed:', error.message);
   }
 
+  // User activity log: what visitors, signed in or not, are doing on the
+  // site. page_view rows are written client-side by ActivityTracker on every
+  // route change (see components/analytics/activity-tracker.jsx); other event
+  // names can be logged the same way from any route in future.
+  let activityLog = [];
+  try {
+    const rows = await repo.listRecentActivity(100);
+    const userIds = [...new Set(rows.map((row) => row.userId).filter(Boolean))];
+    const users = await repo.listUsersByIds(userIds);
+    const usersById = new Map(users.map((user) => [user.id, user]));
+    activityLog = rows.map((row) => ({ ...row, user: row.userId ? usersById.get(row.userId) || null : null }));
+  } catch (error) {
+    console.error('[admin] activity log failed:', error.message);
+  }
+
+  // Visitor analytics: real traffic numbers from the Vercel Web Analytics
+  // API. @vercel/analytics (in components/providers.jsx) already tracks
+  // every page view automatically — this just reads that data back in so it
+  // shows up here instead of only in the Vercel dashboard.
+  let webAnalytics = { configured: false };
+  try {
+    webAnalytics = await getWebAnalyticsSummary({ days: 7 });
+  } catch (error) {
+    console.error('[admin] web analytics failed:', error.message);
+    webAnalytics = { configured: hasVercelAnalytics, ok: false, error: error.message };
+  }
+
   const { config, store, feed, engagement, usage, runs, sourceHealth } = stats;
   return (
     <>
@@ -204,6 +236,87 @@ export default async function AdminPage() {
           hint="Ideas scored to date"
         />
       </div>
+
+      {/* Visitor analytics */}
+      <Card tone="glass" className="mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardEyebrow icon={Globe}>Visitor analytics</CardEyebrow>
+            <p className="mt-1.5 max-w-2xl text-[11px] leading-relaxed text-on-surface-variant">
+              Real traffic, read live from Vercel Web Analytics. The tracking script is already
+              running on every page (@vercel/analytics) &mdash; this panel just surfaces that data
+              here instead of only in the Vercel dashboard.
+            </p>
+          </div>
+          {webAnalytics.configured && webAnalytics.ok ? (
+            <div className="flex gap-4">
+              <div className="text-right">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                  Pageviews (7d)
+                </p>
+                <p className="mono text-lg font-black text-on-surface">
+                  {formatNumber(webAnalytics.pageviews)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                  Visitors (7d)
+                </p>
+                <p className="mono text-lg font-black text-on-surface">
+                  {formatNumber(webAnalytics.visitors)}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {!webAnalytics.configured ? (
+          <div className="mt-4 rounded-xl border border-amber-signal/30 bg-amber-500/5 p-4">
+            <p className="text-[11px] font-bold text-amber-signal">Not configured yet</p>
+            <p className="mt-1 text-[10px] leading-relaxed text-on-surface-variant">
+              This reads Vercel&apos;s existing Web Analytics data (no new tracking script needed,
+              it&apos;s already running) &mdash; it just needs credentials to query it from here.
+              In the Vercel dashboard: enable{' '}
+              <span className="font-semibold text-on-surface">Web Analytics</span> for this project,
+              then create an access token and set{' '}
+              <code className="mono rounded bg-surface-low px-1 py-0.5">VERCEL_ANALYTICS_TOKEN</code>,{' '}
+              <code className="mono rounded bg-surface-low px-1 py-0.5">VERCEL_PROJECT_ID</code>, and
+              (for team projects) <code className="mono rounded bg-surface-low px-1 py-0.5">VERCEL_TEAM_ID</code>{' '}
+              as environment variables.
+            </p>
+          </div>
+        ) : !webAnalytics.ok ? (
+          <div className="mt-4 rounded-xl border border-rose-signal/30 bg-rose-500/5 p-4">
+            <p className="text-[11px] font-bold text-rose-signal">Could not load Vercel Analytics</p>
+            <p className="mt-1 text-[10px] leading-relaxed text-on-surface-variant">{webAnalytics.error}</p>
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+            <VisitorsChart daily={webAnalytics.daily} />
+            <Card tone="glass" className="p-4">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                Top pages (7d)
+              </p>
+              {webAnalytics.topRoutes.length === 0 ? (
+                <p className="mt-3 text-[11px] text-on-surface-variant">No page views recorded yet.</p>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {webAnalytics.topRoutes.map((route) => (
+                    <li key={route.route} className="flex items-center justify-between gap-2 text-[11px]">
+                      <span className="mono truncate text-on-surface" title={route.route}>
+                        {route.route}
+                      </span>
+                      <span className="mono shrink-0 text-on-surface-variant">
+                        {formatNumber(route.pageviews)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </div>
+        )}
+      </Card>
 
       {/* System log */}
       <Card tone="glass" className="mb-6 p-5">
@@ -358,6 +471,79 @@ export default async function AdminPage() {
                     </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* User activity log */}
+      <Card tone="glass" className="mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardEyebrow icon={History}>User activity</CardEyebrow>
+            <p className="mt-1.5 max-w-2xl text-[11px] leading-relaxed text-on-surface-variant">
+              What people are doing on the site, event by event &mdash; page views (signed in or not)
+              plus any other action a route records. This complements Visitor analytics above:
+              that panel gives you the aggregate numbers, this gives you the attributable trail.
+            </p>
+          </div>
+          <Badge variant="outline">{activityLog.length} recent</Badge>
+        </div>
+
+        {activityLog.length === 0 ? (
+          <p className="mt-4 text-[11px] text-on-surface-variant">
+            No activity recorded yet. Browse the site in another tab and this table fills in within a
+            few seconds.
+          </p>
+        ) : (
+          <div className="mt-4 max-h-[420px] overflow-x-auto overflow-y-auto rounded-xl border border-border/60">
+            <table className="w-full min-w-[720px] border-collapse text-left">
+              <thead className="sticky top-0 bg-surface-low/95 backdrop-blur">
+                <tr className="border-b border-border/60">
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    When
+                  </th>
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    User
+                  </th>
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Event
+                  </th>
+                  <th className="px-3 py-2.5 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Path
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {activityLog.map((row) => (
+                  <tr key={row.id}>
+                    <td className="whitespace-nowrap px-3 py-2.5 text-[10px] text-on-surface-variant">
+                      {formatRelativeTime(row.createdAt)}
+                    </td>
+                    <td className="px-3 py-2.5 text-[10px]">
+                      {row.user ? (
+                        <>
+                          <div className="font-bold text-on-surface">{row.user.name || 'Unnamed'}</div>
+                          <div className="text-on-surface-variant">{row.user.email}</div>
+                        </>
+                      ) : (
+                        <span className="text-on-surface-variant">
+                          Anonymous{row.sessionId ? ` \u00b7 ${truncate(row.sessionId, 10)}` : ''}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                        <MousePointerClick className="h-3 w-3" />
+                        {row.event}
+                      </Badge>
+                    </td>
+                    <td className="mono px-3 py-2.5 text-[10px] text-on-surface-variant">
+                      {row.path || '—'}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
