@@ -159,10 +159,10 @@ export function PricingModal() {
         <div className="mt-5 flex justify-center">
           <Card
             tone="glass"
-            className="relative flex w-full max-w-sm flex-col justify-between p-5 border-2 border-primary/70 bg-primary/5 shadow-lg shadow-primary/10"
+            className="relative flex w-full max-w-sm flex-col justify-between p-5 pt-7 border-2 border-primary/70 bg-primary/5 shadow-lg shadow-primary/10"
           >
-            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-              <Badge variant="emerald" className="shadow-sm font-bold text-[9px] px-2 py-0.5">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap">
+              <Badge variant="emerald" className="shadow-sm font-bold text-[9px] px-2.5 py-0.5">
                 🔥 One-time payment • No renewal
               </Badge>
             </div>
