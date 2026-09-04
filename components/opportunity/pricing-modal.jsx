@@ -161,10 +161,10 @@ export function PricingModal() {
             tone="glass"
             className="relative flex w-full max-w-sm flex-col justify-between p-5 pt-7 border-2 border-primary/70 bg-primary/5 shadow-lg shadow-primary/10"
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
-              <Badge variant="emerald" className="shadow-sm font-bold text-[9px] px-2.5 py-0.5">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-signal/40 bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-700 shadow-sm dark:bg-emerald-950 dark:text-emerald-300">
                 🔥 One-time payment • No renewal
-              </Badge>
+              </span>
             </div>
 
             <div>
