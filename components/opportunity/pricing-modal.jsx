@@ -113,12 +113,12 @@ export function PricingModal() {
           </div>
 
           <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight text-on-surface">
-            One brief can pay for a year of this
+            Pay once. Unlocked for good.
           </DialogTitle>
 
           <DialogDescription className="max-w-lg mx-auto text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-            You saw what the free sample shows. Pro removes every locked section and hands you the
-            full decision kit — the analysis an engagement firm would charge five figures for.
+            You saw what the free sample shows. A single ₹199 payment removes every locked section,
+            permanently — no recurring charge, no subscription to remember to cancel.
           </DialogDescription>
         </DialogHeader>
 
@@ -128,11 +128,11 @@ export function PricingModal() {
           </p>
           <p className="mt-1 text-center text-[11px] text-on-surface-variant">
             Comparable market-research engagements start around <span className="mono font-bold text-on-surface">₹75,000</span>.
-            Here it is continuous, updated daily, and costs less per day than a coffee.
+            Here it's a one-time ₹199 — less than a single coffee run, unlocked forever.
           </p>
           {!paymentsLive ? (
             <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-              Payments are launching soon. Unlocking a plan below gives you free early access now — no charge, no card required.
+              Payments are launching soon. Unlocking below gives you free early access now — no charge, no card required.
             </p>
           ) : null}
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -156,93 +156,41 @@ export function PricingModal() {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="mt-5 flex justify-center">
           <Card
             tone="glass"
-            className="flex flex-col justify-between p-5 border-border/70 hover:border-primary/40 transition-colors"
+            className="relative flex w-full max-w-sm flex-col justify-between p-5 border-2 border-primary/70 bg-primary/5 shadow-lg shadow-primary/10"
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-on-surface">Starter Founder Pass</h3>
-                <Badge variant="outline" className="text-[9px]">Monthly</Badge>
-              </div>
-
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-3xl font-black text-on-surface">₹499</span>
-                <span className="text-xs text-on-surface-variant">/ month</span>
-              </div>
-
-              <p className="mt-1.5 text-[11px] text-on-surface-variant leading-normal">
-                Prove one idea before you commit. Cancel the month it pays off.
-              </p>
-
-              <ul className="mt-4 space-y-2 text-xs text-on-surface-variant">
-                <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  <span>Full Opportunity Radar (all briefs, zero locked sections)</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  <span>Complete evidence trail for every score</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  <span>20 AI idea validations / month</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  <span>RBI &amp; SEBI circular tracking</span>
-                </li>
-              </ul>
-            </div>
-
-            <Button
-              variant="secondary"
-              className="mt-5 w-full font-bold text-xs"
-              onClick={() => startCheckout('starter')}
-              disabled={isCheckingOut}
-            >
-              {isCheckingOut
-                ? 'Opening checkout…'
-                : paymentsLive
-                ? 'Start with Starter (₹499)'
-                : 'Get Starter free (early access)'}
-            </Button>
-          </Card>
-
-          <Card
-            tone="glass"
-            className="relative flex flex-col justify-between p-5 border-2 border-primary/70 bg-primary/5 shadow-lg shadow-primary/10"
-          >
-            <div className="absolute -top-2.5 right-4">
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
               <Badge variant="emerald" className="shadow-sm font-bold text-[9px] px-2 py-0.5">
-                🔥 Best Value • Save ₹989
+                🔥 One-time payment • No renewal
               </Badge>
             </div>
 
             <div>
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-on-surface">Venture Pro Annual</h3>
-                <Badge variant="indigo" className="text-[9px]">Annual</Badge>
+                <h3 className="text-sm font-bold text-on-surface">Full Report Access</h3>
+                <Badge variant="indigo" className="text-[9px]">Lifetime</Badge>
               </div>
 
               <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-3xl font-black text-on-surface">₹4,999</span>
-                <span className="text-xs text-on-surface-variant">/ year (₹416/mo · ₹14/day)</span>
+                <span className="text-3xl font-black text-on-surface">₹199</span>
+                <span className="text-xs text-on-surface-variant">one-time</span>
               </div>
 
               <p className="mt-1.5 text-[11px] text-on-surface-variant leading-normal">
-                Everything in the report contents above, unlimited, for less than a coffee a day.
+                Pay once, unlocked forever. Everything in the report contents above, on every brief,
+                for as long as you use FounderSignal.
               </p>
 
               <ul className="mt-4 space-y-2 text-xs text-on-surface-variant">
                 <li className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <strong className="text-on-surface font-semibold">All 12 report sections unlocked everywhere</strong>
+                  <strong className="text-on-surface font-semibold">All 12 report sections unlocked, everywhere</strong>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span>Unlimited deep briefs &amp; AI validations</span>
+                  <span>Full Opportunity Radar &amp; unlimited AI validations</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -270,8 +218,8 @@ export function PricingModal() {
                 {isCheckingOut
                   ? 'Opening checkout…'
                   : paymentsLive
-                  ? 'Unlock Venture Pro (₹4,999)'
-                  : 'Get Venture Pro free (early access)'}
+                  ? 'Unlock full access (₹199)'
+                  : 'Unlock free (early access)'}
               </span>
               <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
@@ -280,7 +228,7 @@ export function PricingModal() {
 
         <div className="mt-5 flex items-center justify-center gap-1.5 text-center text-[11px] text-on-surface-variant/75">
           <Shield className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-          <span>{paymentsLive ? 'Instant activation • Cancel anytime' : 'Instant activation • Free during early access'}</span>
+          <span>{paymentsLive ? 'Instant activation • Pay once, no renewals' : 'Instant activation • Free during early access'}</span>
         </div>
       </DialogContent>
     </Dialog>
