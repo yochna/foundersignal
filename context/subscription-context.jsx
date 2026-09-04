@@ -16,25 +16,6 @@ const SubscriptionContext = React.createContext({
   downgradeToFree: () => {},
 });
 
-const RAZORPAY_SCRIPT_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
-
-function loadRazorpayScript() {
-  return new Promise((resolve, reject) => {
-    if (window.Razorpay) return resolve();
-    const existing = document.querySelector(`script[src="${RAZORPAY_SCRIPT_SRC}"]`);
-    if (existing) {
-      existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', () => reject(new Error('Could not load Razorpay checkout')));
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = RAZORPAY_SCRIPT_SRC;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Could not load Razorpay checkout'));
-    document.body.appendChild(script);
-  });
-}
-
 export function SubscriptionProvider({ children }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = React.useState(false);
@@ -80,6 +61,59 @@ export function SubscriptionProvider({ children }) {
     };
   }, [session, refreshEntitlement]);
 
+  // Checkout now redirects to a Razorpay-hosted Payment Link page and back,
+  // rather than opening a client-side checkout.js modal. On return, Razorpay
+  // appends razorpay_payment_link_* query params to the callback_url we
+  // registered when the link was created; this effect picks those up,
+  // verifies the signature server-side, and unlocks access immediately.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('fs_payment') !== '1') return;
+
+    const paymentLinkId = params.get('razorpay_payment_link_id');
+    const referenceId = params.get('razorpay_payment_link_reference_id');
+    const paymentLinkStatus = params.get('razorpay_payment_link_status');
+    const paymentId = params.get('razorpay_payment_id');
+    const signature = params.get('razorpay_signature');
+
+    // Strip the query params immediately either way, so a page refresh
+    // doesn't re-trigger verification or leave Razorpay params in the URL.
+    const cleanUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl);
+
+    if (!paymentLinkId || !referenceId || !paymentLinkStatus || !paymentId || !signature) {
+      return;
+    }
+
+    if (paymentLinkStatus !== 'paid') {
+      toast.info('Checkout closed. No payment was made.');
+      return;
+    }
+
+    fetch('/api/payments/verify-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentLinkId, referenceId, paymentLinkStatus, paymentId, signature }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok || !data?.ok) throw new Error(data?.error?.message || 'Payment could not be verified');
+        await refreshEntitlement();
+        toast.success('🎉 Welcome to FounderSignal Pro!', {
+          description: 'Payment verified. All briefs and features are unlocked.',
+          duration: 5000,
+        });
+      })
+      .catch(() => {
+        toast.error('Payment received but verification failed', {
+          description: 'Contact support with your payment id — you were charged but not yet upgraded.',
+        });
+      });
+    // Runs once on mount per page load; refreshEntitlement is stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const openPricingModal = React.useCallback(() => setIsPricingModalOpen(true), []);
   const closePricingModal = React.useCallback(() => setIsPricingModalOpen(false), []);
 
@@ -87,10 +121,11 @@ export function SubscriptionProvider({ children }) {
     async (planType = 'venture_pro') => {
       setIsCheckingOut(true);
       try {
+        const returnPath = window.location.pathname + window.location.search;
         const orderRes = await fetch('/api/payments/create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan: planType }),
+          body: JSON.stringify({ plan: planType, returnPath }),
         });
         const orderData = await orderRes.json();
         if (!orderRes.ok || !orderData?.ok) {
@@ -117,57 +152,12 @@ export function SubscriptionProvider({ children }) {
           return;
         }
 
-        await loadRazorpayScript();
-
-        const razorpay = new window.Razorpay({
-          key: orderData.keyId,
-          order_id: orderData.orderId,
-          amount: orderData.amount,
-          currency: orderData.currency,
-          name: 'FounderSignal',
-          description: orderData.planLabel,
-          prefill: orderData.prefill,
-          theme: { color: '#6366f1' },
-          handler: async (response) => {
-            try {
-              const verifyRes = await fetch('/api/payments/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  orderId: response.razorpay_order_id,
-                  paymentId: response.razorpay_payment_id,
-                  signature: response.razorpay_signature,
-                }),
-              });
-              const verifyData = await verifyRes.json();
-              if (!verifyRes.ok || !verifyData?.ok) throw new Error('Payment could not be verified');
-              await refreshEntitlement();
-              setIsPricingModalOpen(false);
-              toast.success('🎉 Welcome to FounderSignal Pro!', {
-                description: 'Payment verified. All briefs and features are unlocked.',
-                duration: 5000,
-              });
-            } catch (error) {
-              toast.error('Payment received but verification failed', {
-                description: 'Contact support with your payment id — you were charged but not yet upgraded.',
-              });
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              toast.info('Checkout closed. No payment was made.');
-            },
-          },
-        });
-
-        razorpay.on('payment.failed', (response) => {
-          toast.error('Payment failed', { description: response?.error?.description || 'Please try again.' });
-        });
-
-        razorpay.open();
+        // Redirect to Razorpay's hosted Payment Link page. The browser comes
+        // back to returnPath with ?fs_payment=1 and Razorpay's signed query
+        // params, picked up by the effect above.
+        window.location.href = orderData.url;
       } catch (error) {
         toast.error('Could not start checkout', { description: error.message });
-      } finally {
         setIsCheckingOut(false);
       }
     },

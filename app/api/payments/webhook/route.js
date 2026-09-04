@@ -51,5 +51,28 @@ export async function POST(request) {
     }
   }
 
+  // Active checkout flow: Payment Links don't have a Razorpay order_id until
+  // paid, so these are matched by reference_id — the same id we generate and
+  // store as the order's row id at checkout time (see create-order/route.js).
+  if (event?.event === 'payment_link.paid') {
+    const referenceId = event?.payload?.payment_link?.entity?.reference_id;
+    const paymentId = event?.payload?.payment?.entity?.id;
+    if (referenceId && paymentId) {
+      try {
+        const order = await repo.getPaymentOrder(referenceId);
+        if (order && order.status !== 'captured') {
+          await repo.markPaymentCaptured(referenceId, paymentId);
+          const plan = getPlan(order.plan);
+          if (plan && order.userId) {
+            const expiresAt = new Date(Date.now() + plan.periodDays * 24 * 60 * 60 * 1000).toISOString();
+            await repo.setUserPlan(order.userId, { plan: plan.id, expiresAt });
+          }
+        }
+      } catch (error) {
+        console.error('[payments/webhook] failed to reconcile payment link:', error.message);
+      }
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }
