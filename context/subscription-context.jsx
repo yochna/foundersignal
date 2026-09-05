@@ -61,56 +61,61 @@ export function SubscriptionProvider({ children }) {
     };
   }, [session, refreshEntitlement]);
 
-  // Checkout now redirects to a Razorpay-hosted Payment Link page and back,
-  // rather than opening a client-side checkout.js modal. On return, Razorpay
-  // appends razorpay_payment_link_* query params to the callback_url we
-  // registered when the link was created; this effect picks those up,
-  // verifies the signature server-side, and unlocks access immediately.
+  // Checkout now redirects to a Lemon Squeezy-hosted checkout page and back.
+  // Unlike the Razorpay Payment Links flow this replaced, Lemon Squeezy's
+  // redirect_url doesn't carry a verifiable signed proof of payment — the
+  // webhook (see app/api/payments/lemonsqueezy-webhook/route.js) is the only
+  // place access actually gets granted, and it's normally near-instant. So
+  // instead of verifying anything client-side, this just polls /api/plan for
+  // a few seconds after returning, waiting for the webhook to have landed.
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('fs_payment') !== '1') return;
 
-    const paymentLinkId = params.get('razorpay_payment_link_id');
-    const referenceId = params.get('razorpay_payment_link_reference_id');
-    const paymentLinkStatus = params.get('razorpay_payment_link_status');
-    const paymentId = params.get('razorpay_payment_id');
-    const signature = params.get('razorpay_signature');
-
-    // Strip the query params immediately either way, so a page refresh
-    // doesn't re-trigger verification or leave Razorpay params in the URL.
+    // Strip the query param immediately, so a page refresh doesn't re-poll.
     const cleanUrl = window.location.pathname + window.location.hash;
     window.history.replaceState({}, '', cleanUrl);
 
-    if (!paymentLinkId || !referenceId || !paymentLinkStatus || !paymentId || !signature) {
-      return;
-    }
+    let cancelled = false;
+    const attempts = 8;
+    const intervalMs = 2000;
 
-    if (paymentLinkStatus !== 'paid') {
-      toast.info('Checkout closed. No payment was made.');
-      return;
-    }
-
-    fetch('/api/payments/verify-link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paymentLinkId, referenceId, paymentLinkStatus, paymentId, signature }),
-    })
-      .then(async (res) => {
+    const poll = async (attempt) => {
+      if (cancelled) return;
+      try {
+        const res = await fetch('/api/plan', { cache: 'no-store' });
         const data = await res.json();
-        if (!res.ok || !data?.ok) throw new Error(data?.error?.message || 'Payment could not be verified');
-        await refreshEntitlement();
-        toast.success('🎉 Welcome to FounderSignal Pro!', {
-          description: 'Payment verified. All briefs and features are unlocked.',
-          duration: 5000,
+        if (data?.ok && data.isPro) {
+          setIsPro(true);
+          setPlan(data.plan || 'venture_pro');
+          setIsPricingModalOpen(false);
+          toast.success('🎉 Welcome to FounderSignal Pro!', {
+            description: 'Payment confirmed. All briefs and features are unlocked.',
+            duration: 5000,
+          });
+          return;
+        }
+      } catch {
+        // Keep polling; a single failed request isn't reason to give up early.
+      }
+
+      if (attempt < attempts) {
+        setTimeout(() => poll(attempt + 1), intervalMs);
+      } else {
+        toast.info('Still confirming your payment…', {
+          description:
+            'This can take a minute. Refresh the page shortly — if it was charged, access unlocks automatically once confirmed.',
+          duration: 8000,
         });
-      })
-      .catch(() => {
-        toast.error('Payment received but verification failed', {
-          description: 'Contact support with your payment id — you were charged but not yet upgraded.',
-        });
-      });
-    // Runs once on mount per page load; refreshEntitlement is stable.
+      }
+    };
+
+    poll(1);
+    return () => {
+      cancelled = true;
+    };
+    // Runs once on mount per page load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -132,9 +137,9 @@ export function SubscriptionProvider({ children }) {
           throw new Error(orderData?.error?.message || orderData?.message || 'Could not start checkout');
         }
 
-        // No Razorpay keys configured yet: fall back to a labelled demo grant
-        // instead of a broken checkout, same as every other AI/data feature
-        // in this app degrades rather than erroring.
+        // No Lemon Squeezy keys configured yet: fall back to a labelled demo
+        // grant instead of a broken checkout, same as every other AI/data
+        // feature in this app degrades rather than erroring.
         if (orderData.demo) {
           const demoRes = await fetch('/api/payments/demo-upgrade', {
             method: 'POST',
@@ -152,9 +157,9 @@ export function SubscriptionProvider({ children }) {
           return;
         }
 
-        // Redirect to Razorpay's hosted Payment Link page. The browser comes
-        // back to returnPath with ?fs_payment=1 and Razorpay's signed query
-        // params, picked up by the effect above.
+        // Redirect to Lemon Squeezy's hosted checkout page. The browser comes
+        // back to returnPath with ?fs_payment=1, picked up by the polling
+        // effect above.
         window.location.href = orderData.url;
       } catch (error) {
         toast.error('Could not start checkout', { description: error.message });

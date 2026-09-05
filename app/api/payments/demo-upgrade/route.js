@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { withApi, readJson } from '@/lib/api';
 import { requireUser } from '@/lib/auth';
-import { hasRazorpay } from '@/lib/config';
+import { hasLemonsqueezy } from '@/lib/config';
 import { AppError, ErrorCode } from '@/lib/errors';
 import { normalizePlan, PRO_COOKIE, PLAN_COOKIE } from '@/lib/entitlements';
 
@@ -11,12 +11,12 @@ const YEAR_S = 365 * 24 * 60 * 60;
 
 /**
  * Instant "Pro" grant with no real charge, for local dev / preview deploys
- * that have no Razorpay keys set. Locked out the moment Razorpay is
- * configured, so it can never be reached in a real, billable deployment.
+ * that have no Lemon Squeezy keys set. Locked out the moment Lemon Squeezy
+ * is configured, so it can never be reached in a real, billable deployment.
  */
 export const POST = withApi(async (request) => {
-  if (hasRazorpay) {
-    throw new AppError(ErrorCode.FORBIDDEN, 'Demo upgrade is disabled once Razorpay is configured', {
+  if (hasLemonsqueezy) {
+    throw new AppError(ErrorCode.FORBIDDEN, 'Demo upgrade is disabled once Lemon Squeezy is configured', {
       hint: 'Use the real checkout flow.',
     });
   }
